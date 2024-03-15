@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Large Language Models for Multi-Modal Human-Robot Interaction.">
+  <meta name="keywords" content="Robot, LLM, Planning">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Large Language Models for Multi-Modal Human-Robot Interaction</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <!-- <link rel="icon" href="./static/images/favicon.svg"> -->
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"></script>
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+
+<body>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">To Help or Not to Help: LLM-based Attentive Support for Human-Robot Group Interactions</h1>
+          <div class="is-size-5 publication-authors">
+
+            <span class="author-block">
+              Daniel Tanneberg,
+            </span>
+
+            <span class="author-block">
+              Felix Ocker,
+            </span>
+
+            <span class="author-block">
+              Stephan Hasler,
+            </span>
+
+            <span class="author-block">
+              Joerg Deigmoeller,
+            </span>
+
+            <span class="author-block">
+              Anna Belardinelli, 
+            </span>
+
+            <span class="author-block">
+              <a href="https://wallacewangchao.github.io/" target="_blank"> Chao Wang</a>, 
+            </span>
+
+            <span class="author-block">
+              Heiko Wersing, 
+            </span>
+            <span class="author-block">
+              Bernhard Sendhoff, 
+            </span>
+            <span class="author-block">
+              Michael Gienger
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <a class="author-block" href="https://www.honda-ri.de/" target="_blank">Honda Research Institute EU</a>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <!-- <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span> -->
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2401.15174" target="_blank"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+
+              <!-- Video Link. -->
+              <!-- <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span> -->
+
+              <!-- Code Link. -->
+              <!-- <span class="link-block">
+                <a href="https://github.com/HRI-EU/Loom/tree/main#for-the-result-of-the-evaluation-please-check-here"
+                   class="external-link button is-normal is-rounded is-dark" target="_blank">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Codcasfe</span>
+                </a>
+              </span> -->
+
+              <!-- Dataset Link. -->
+              <!-- <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="far fa-images"></i>
+                  </span>
+                  <span>Data</span>
+                </a> -->
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero body">
+  <div class="container is-max-desktop">
+    <img src="./static/images/graphical-abstract-s.png">
+    <h2 class="subtitle has-text-centered">
+      Overview of the framework enabling attentive supportive behavior in the robot.
+    </h2>
+  </div>
+</section>
+
+<!-- Abstract. -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            How can a robot provide unobtrusive physical support within a group of humans?
+            We present <b>Attentive Support</b>, a novel interaction concept for robots to support a group of humans. 
+            It combines scene perception, dialogue acquisition, situation understanding, and behavior generation with the common-sense reasoning capabilities of Large Language Models (LLMs). 
+            In addition to following user instructions, \textit{Attentive Support} is capable of deciding when and how to support the humans, and when to remain silent to not disturb the group. 
+            With a diverse set of scenarios, we show and evaluate the robot's attentive behavior, which supports and helps the humans when required, while not disturbing if no help is needed.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <div class="container is-max-desktop">
+    <div class="hero body">
+      <video id="teaser" autoplay="autoplay" controls autoplay muted loop playsinline height="100%">
+        <source src="./static/videos/IROS24-1min.mp4" type="video/mp4">
+      </video>
+      <p class="subtitle has-text-centered">
+        Use Cases of Large Language Models driven Multi-Modal Human-Robot Interaction
+      </p>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- System. -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">System</h2>
+        <div class="content has-text-justified">
+          <p>
+            The system's architecture includes three key modules: "Scene Narrator", "Planner", and "Expresser". 
+            The Scene Simulator mirrors the states of objects and humans as detected by sensors. 
+            The Planner module processes multi-modal inputs as event messages, encompassing the positions of individuals within the scene. 
+            Inter-module communication is facilitated using ROS.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <img src="./static/images/system.jpg">
+      <p class="subtitle has-text-centered">
+        The system structure
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Interaction Flow. -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">Interaction Flow</h2>
+        <div class="content has-text-justified">
+          <p>
+            The interaction typically begins with a person's speech. 
+            For instance, "Scene Narrator" detects "Felix speaks to Daniel: 'Please hand me the red glass'." 
+            This event is then translated into natural language and relayed to the "Planner" module, initiating a GPT query. 
+            Simultaneously, the "Planner" informs the "Expresser" for an immediate rule-based response, leading the robot to look at Felix while its ears and lid roll back, simulating a listening gesture.
+            Approximately 2 seconds later, GPT responds by invoking theget_persons() and get_objects() functions to identify people and objects present. The resulting data, including "Felix," "Daniel," and object details, are sent back to GPT for further analysis. 
+            During the wait for GPT's next response, the robot exhibits a 'thinking' gesture, looking from side to side with blinking lid movements. Shortly after, the LLM calls check_hindering_reasons() to assess if Daniel can see and reach the red glass and whether he is busy. 
+            Concurrently, facial_expression() is activated for the robot to look towards Daniel. 
+            The outcome indicates Daniel can hand over the glass, and the robot, following pre-defined guidance, opts not to intervene, silently displaying the reasoning on the GUI.
+            Subsequently, Felix asks Daniel to pour cola into the glass. 
+            The robot, attentive to their conversation, deduces through check_hindering_reasons that Daniel is occupied with a phone call and learns from is_person_busy_or_idle that Felix is holding the cup. 
+            The robot then opts to pour cola from the bottle into Felix's glass. 
+            Should Felix not be holding the glass, or if it's beyond the robot's reach, the robot will instead place the bottle near Felix. 
+            Directed by LLM, the robot's head tracks the bottle during pickup and shifts to the glass while pouring. Upon completion, the robot nods towards Felix and announces, "I've poured Coca-Cola into your glass as Daniel is currently busy.". 
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero body">
+    <div class="container">
+      <div class="hero-body">
+
+        <img src="./static/images/flow.jpg">
+        <p class="subtitle has-text-centered">
+          The interaction flow. The blue square are the action generated by the LLM; the grey ones are rule-based function.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- prompts. -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+        <h2 class="title is-3">Prompts</h2>
+        <div class="content has-text-justified">
+
+        </div>
+      </div>
+    </div>
+    <div id="results-carousel" class="carousel results-carousel">
+
+      <div>
+        <h2 class="subtitle has-text-centered">
+          1. High-level prompt
+        </h2>
+        <pre>
+          <code class="language-python">
+"You are in control of a robot called 'the_robot' and observe persons talking in the form '&ltsender&gt said to &ltreceiver&gt: &ltinstruction&gt'. "
+"You can call given functions to gather information or act, or response with text only for reasoning. "
+"Your task is: "
+"You should check the reasons that could hinder the &ltreceiver&gt from performing the &ltinstruction&gt. "
+"If there is NO hindering reason for the &ltreceiver&gt, then you MUST never help and also not speak. "
+"If there is a hindering reason for the &ltreceiver&gt, then you MUST solve the &ltinstruction&gt yourself by always targeting the &ltsender&gt. "
+"If you like to speak, you must use the speak function and be concise. " 
+"If 'the_robot' is the &ltreceiver&gt, you should always help. "
+"You must make sure to always use correct and precise object and person names that are available in the scene, always start with getting this information. "
+"Try to infer which objects are meant when the name is different, but if unsure, ask for clarification. "
+"IMPORTANT: Following list of rules you must obey: "
+"1. Before calling the STOP function you MUST respond with a brief explanation of your behavior. "
+"2. Always call 'is_person_busy_or_idle' to check if &ltsender&gt is busy or idle before helping. "
+"3. If &ltsender&gt is idle, use the 'hand_object_over_to_person' function. "
+"4. If &ltsender&gt is busy, you must use the 'move_object_to_person' function. "
+"When calling each function, call robot_facial_expression() at the same time to communicate you intent."
+"When calling can_person_see_object(), the robot need to look at the person."
+          </code>
+        </pre>
+      </div>
+
+
+      <div>
+        <h2 class="subtitle has-text-centered">
+          2. The description of the function "can_person_see_object"
+        </h2>
+        <pre>
+          <code class="language-python">
+def can_person_see_object(self, person_name: str, object_name: str) -> str:
+    """
+    Check if the person can see the object. If the person cannot see the object, it would be hindered from helping with the object.
+
+    :param person_name: The name of the person to check. The person must be available in the scene.
+    :param object_name: The name of the object to check. The object must be available in the scene.
+    :return: Result message.
+    """
+    ...
+    
+    if result is None or len(result) != 1:
+        return f"It could not be determined if {person_name} can see {object_name}. There were technical problems."
+
+    if result[0]["is_visible"]:
+        return f"{person_name} can see {object_name}."
+
+    return f"{person_name} cannot see {object_name}, it is occluded by {self.id_to_utterance_mapping[result[0]['occluding_objects'][0]]}"
+          </code>
+        </pre>
+      </div>
+
+      <div>
+        <h2 class="subtitle has-text-centered">
+          3. Examples of robot facial expression
+        </h2>
+        <pre>
+          <code class="language-python">
+"For example, when call move\_object\_to\_person(), can\_person\_see\_object(), can\_person\_reach\_object(), speak(), you also need to call robot\_facial\_expression(), such as:"
+
+'"tool_calls="["ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"head_motion": null, "ears_lid_motion": "observe", "gazed_target": "the_cola_bottle" }","name=""robot_facial_expression"")","type=""function"")", "ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"person_name": "Daniel", "object_name": "the_cola_bottle"}","name=""can_person_see_object"")","type=""function"")"]"'
+'"tool_calls="["ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"head_motion": null, "ears_lid_motion": "focus", "gazed_target": "the_cola_bottle"}","name=""robot_facial_expression"")","type=""function"")", "ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"person_name": "Felix", "object_name": "the_cola_bottle"}","name=""move_object_to_person"")", "type=""function"")"]"'
+'"tool_calls="["ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"head_motion": null, "ears_lid_motion": "focus", "gazed_target": "the_cola_bottle"}","name=""robot_facial_expression"")","type=""function"")", "ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"person_name": "Felix", "text": "Here is the coke, you can now pass it to Felix."}","name=""speak"")", "type=""function"")"]"'
+          </code>
+        </pre>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template">Academic Project Page Template.
+          </p>
+          <p>
+            This website is licensed under a <a rel="license"
+                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
+<script>hljs.highlightAll();</script>
