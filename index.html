@@ -294,48 +294,6 @@
       </div>
 
 
-      <div>
-        <h2 class="subtitle has-text-centered">
-          2. The description of the function "can_person_see_object"
-        </h2>
-        <pre>
-          <code class="language-python">
-def can_person_see_object(self, person_name: str, object_name: str) -> str:
-    """
-    Check if the person can see the object. If the person cannot see the object, it would be hindered from helping with the object.
-
-    :param person_name: The name of the person to check. The person must be available in the scene.
-    :param object_name: The name of the object to check. The object must be available in the scene.
-    :return: Result message.
-    """
-    ...
-    
-    if result is None or len(result) != 1:
-        return f"It could not be determined if {person_name} can see {object_name}. There were technical problems."
-
-    if result[0]["is_visible"]:
-        return f"{person_name} can see {object_name}."
-
-    return f"{person_name} cannot see {object_name}, it is occluded by {self.id_to_utterance_mapping[result[0]['occluding_objects'][0]]}"
-          </code>
-        </pre>
-      </div>
-
-      <div>
-        <h2 class="subtitle has-text-centered">
-          3. Examples of robot facial expression
-        </h2>
-        <pre>
-          <code class="language-python">
-"For example, when call move\_object\_to\_person(), can\_person\_see\_object(), can\_person\_reach\_object(), speak(), you also need to call robot\_facial\_expression(), such as:"
-
-'"tool_calls="["ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"head_motion": null, "ears_lid_motion": "observe", "gazed_target": "the_cola_bottle" }","name=""robot_facial_expression"")","type=""function"")", "ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"person_name": "Daniel", "object_name": "the_cola_bottle"}","name=""can_person_see_object"")","type=""function"")"]"'
-'"tool_calls="["ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"head_motion": null, "ears_lid_motion": "focus", "gazed_target": "the_cola_bottle"}","name=""robot_facial_expression"")","type=""function"")", "ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"person_name": "Felix", "object_name": "the_cola_bottle"}","name=""move_object_to_person"")", "type=""function"")"]"'
-'"tool_calls="["ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"head_motion": null, "ears_lid_motion": "focus", "gazed_target": "the_cola_bottle"}","name=""robot_facial_expression"")","type=""function"")", "ChatCompletionMessageToolCall(id=""...","function=Function(arguments=""{"person_name": "Felix", "text": "Here is the coke, you can now pass it to Felix."}","name=""speak"")", "type=""function"")"]"'
-          </code>
-        </pre>
-      </div>
-
     </div>
   </div>
 </section>
