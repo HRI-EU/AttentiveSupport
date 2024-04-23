@@ -1,0 +1,4 @@
+[submodule "src/Smile"]
+	path = src/Smile
+	url = https://github.com/HRI-EU/SmileWorkspace
+	branch = main

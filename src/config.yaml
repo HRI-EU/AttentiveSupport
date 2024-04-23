@@ -1,0 +1,2 @@
+# Path to the smile workspace build, relative to the AttentiveSupport directory
+install: "./install"
