@@ -1,4 +1,5 @@
 # Attentive support
+![banner](docs/banner.png)
 [![Static Badge](https://img.shields.io/badge/arXiv-2311.08412-B31B1B?style=flat-square&logo=arxiv)](https://arxiv.org/abs/2403.12533)
 [![Static Badge](https://img.shields.io/badge/code_style-black-black?style=flat-square)](https://github.com/psf/black)
 
@@ -8,6 +9,17 @@ See the [project website](https://hri-eu.github.io/AttentiveSupport/) for an ove
 
 
 ## Setup
+Prerequisites for building the simulator workspace: g++, cmake, Libxml2, Qt5, qwt, OpenSceneGraph, Bullet Physics
+
+<details>
+<summary>Ubuntu</summary>
+libxml2-dev, qt5-default, libqwt-qt5-dev, libopenscenegraph-dev, libbullet-dev
+</details>
+<details>
+<summary>Fedora</summary>
+cmake, gcc-c++, OpenSceneGraph-devel, libxml2, qwt-qt5-devel, bullet-devel, asio-devel, cppzmq-devel, python3-devel
+</details>
+
 Clone this repo and change into it: `git clone git@github.com:HRI-EU/AttentiveSupport.git && cd AttentiveSupport` \
 You can either run the setup script: `bash build.sh` or follow these steps:
 1. Get the submodules: `git submodule update --init --recursive`
@@ -35,7 +47,7 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 * Provide the agent with further tools:
   * Define tools as Python functions in `tools.py`
   * Make sure to use type hints and add docstrings in the Sphinx notation. This is important so that the `function_analyzer.py` can generate the function descriptions for openai automagically
-  * For inspiration, check out some mroe examples in `src/tool_variants/extended_tools.py`
+  * For inspiration, check out some more examples in `src/tool_variants/extended_tools.py`
 * Change generic settings such as the model used and its temperature via `gpt_config`
 
 ### Additional features
@@ -47,7 +59,7 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 
 ## Example
 Running the simulation with `"Move the red glass to Felix"`: \
-![demo video](docs/demo.png)
+![demo sequence](docs/demo.png)
 
 For reproducing the situated interaction scenario run the following:
 - `agent.plan_with_functions("Felix -> Daniel: Hey Daniel, what do we have to drink?")` \
