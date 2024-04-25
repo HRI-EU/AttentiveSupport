@@ -145,7 +145,8 @@ class ToolAgent:
         print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
 
     def set_busy(self, agent: str, thing: str):
-        self.sim.execute(f"{thing} {agent}")
+        self.sim.execute(f"magic_get {thing} {agent}")
+        # TODO: return success message from sim
         print(f"📝 Set {agent} to busy with {thing}.")
 
 
