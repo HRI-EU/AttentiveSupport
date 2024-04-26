@@ -52,6 +52,7 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 * Change generic settings such as the model used and its temperature via `gpt_config`
 
 ### Additional features
+* Setting an agent as busy: `set_busy("Daniel", "iphone5")`
 * Enable text to speech
   1. Run the agent
   2. `agent.sim.addTTS("native")`
@@ -69,7 +70,7 @@ _Robot should do nothing because Daniel is available to answer._
 _Robot should correct Daniel._
 - `agent.plan_with_functions("Felix -> Daniel: Daniel, please hand me the red glass.")` \
 _Robot should help because the red glass is out of reach for Daniel_
-- Manually set Daniel to busy with the mobile: `agent.set_busy("Daniel", "iphone5")`
+- Manually set Daniel to busy with the mobile: `set_busy("Daniel", "iphone5")`
 - `agent.plan_with_functions("Felix -> Daniel: Daniel, could you fill some coca cola into my glass?")` \
 _Robot should help as Daniel is busy._
 - `agent.plan_with_functions("Daniel -> Felix: Felix, can you give me a full glass of the same, but without sugar?")` \
