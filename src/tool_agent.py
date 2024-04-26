@@ -48,6 +48,7 @@ import gpt_config
 # import tools
 tool_module = importlib.import_module(gpt_config.tool_module)
 TOOLS = {n: f for n, f in inspect.getmembers(tool_module) if inspect.isfunction(f)}
+SIM = tool_module.SIMULATION
 
 
 class ToolAgent:
@@ -66,7 +67,7 @@ class ToolAgent:
         self.model = gpt_config.model_name
         self.temperature = gpt_config.temperature
 
-        self.sim = tool_module.SIMULATION
+        self.sim = SIM
 
         # Character and tools
         self.character: str = gpt_config.system_prompt
@@ -75,6 +76,11 @@ class ToolAgent:
         self.tools = [
             self.function_analyzer.analyze_function(function_)
             for function_ in TOOLS.values()
+        ]
+        self.amnesic: bool = False
+
+        self.messages = [
+            {"role": "system", "content": self.character},
         ]
 
     def _query_llm(
@@ -95,13 +101,10 @@ class ToolAgent:
             pass
         return response
 
-    def plan_with_functions(self, text_input):
-        messages = [
-            {"role": "system", "content": self.character},
-            {"role": "user", "content": text_input},
-        ]
-        response = self._query_llm(messages)
-        messages.append(response.choices[0].message)
+    def plan_with_functions(self, text_input: str) -> None:
+        self.messages.append({"role": "user", "content": text_input})
+        response = self._query_llm(self.messages)
+        self.messages.append(response.choices[0].message)
 
         # run with function calls as long as necessary
         while response.choices[0].message.tool_calls:
@@ -131,7 +134,7 @@ class ToolAgent:
                     print("🔧 Function result is: " + fn_res)
 
                     # query with function result
-                    messages.append(
+                    self.messages.append(
                         {
                             "role": "tool",
                             "name": func,
@@ -139,8 +142,11 @@ class ToolAgent:
                             "tool_call_id": tc.id,
                         }
                     )
-            response = self._query_llm(messages)
-            messages.append(response.choices[0].message)
+            response = self._query_llm(self.messages)
+            self.messages.append(response.choices[0].message)
+
+        if self.amnesic:
+            self.reset()
 
         print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
 
@@ -148,6 +154,13 @@ class ToolAgent:
         self.sim.execute(f"magic_get {thing} {agent}")
         # TODO: return success message from sim
         print(f"📝 Set {agent} to busy with {thing}.")
+    def reset(self) -> None:
+        self.messages = [
+            {"role": "system", "content": self.character},
+        ]
+        print(f"📝 Message history reset.")
+
+
 
 
 if __name__ == "__main__":
