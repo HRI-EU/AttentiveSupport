@@ -260,3 +260,56 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
     if success:
         return f"You moved {object_name} to {person_name}."
     return f"You were not able to move {object_name} to {person_name}."
+
+
+def move_object_away_from_person(object_name: str, person_name: str) -> str:
+    """
+    You get an object and move it away from a person.
+
+    :param object_name: The name of the object to move. The object must be available in the scene.
+    :param person_name: The name of the person to move the object to. The person must be available in the scene.
+    :return: Result message.
+    """
+    success = SIMULATION.planActionSequence(
+        (
+            f"get {object_name} duration 8;"
+            f"put {object_name} far {person_name} duration 7;"
+            "pose default duration 4"
+        ),
+        ARG1,
+    )
+    if success:
+        return f"You moved {object_name} to {person_name}."
+    else:
+        success = SIMULATION.planActionSequence(
+            (
+                f"get {object_name} duration 8;"
+                f"put {object_name};"
+                f"get {object_name} duration 8;"
+                f"put {object_name} far {person_name} duration 7;"
+                "pose default duration 4"
+            ),
+            ARG1,
+        )
+    if success:
+        return f"You moved {object_name} away from {person_name}."
+    return f"You were not able to move {object_name} away from {person_name}."
+
+
+def point_at_object_or_agent(name: str) -> str:
+    """
+    You point at an object or a person. The object or person must be available in the scene.
+
+    :param name: The name of the object or person you want to point at.
+    :return: Result message.
+    """
+    success = SIMULATION.planActionSequence(
+        (
+            f"point {name};"
+            "pose default duration 4"
+        ),
+        ARG1,
+    )
+    if success:
+        return f"You pointed at {name}."
+    return f"You were not able to point at {name}."
