@@ -66,7 +66,6 @@ setLogLevel(-1)
 SIMULATION = LlmSim()
 SIMULATION.noTextGui = True
 SIMULATION.unittest = False
-SIMULATION.useWebsocket = False
 SIMULATION.speedUp = 3
 SIMULATION.noLimits = False
 SIMULATION.verbose = False
