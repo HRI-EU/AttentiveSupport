@@ -34,6 +34,7 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 ## Instructions
 
 ### Running the agent
+* Activate the virtual environment: `source .venv/bin/activate`
 * Run the agent in interactive mode, from the AttentiveSupport directory: `python -i src/tool_agent.py`
 * Provide commands: `agent.plan_with_functions("Move the red glass to Felix")`
 * Reset
