@@ -38,7 +38,7 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 * Run the agent in interactive mode, from the AttentiveSupport directory: `python -i src/tool_agent.py`
 * Provide commands: `agent.plan_with_functions("Move the red glass to Felix")`
 * Reset
-  * The simulation: `agent.sim.reset()`
+  * The simulation: `SIM.reset()`
   * The agent: `agent.reset()`
 
 ### Customizing the agent
@@ -53,10 +53,7 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 
 ### Additional features
 * Setting an agent as busy: `set_busy("Daniel", "iphone5")`
-* Enable text to speech
-  1. Run the agent
-  2. `agent.sim.addTTS("native")`
-  3. `agent.sim.callEvent("Start")`
+* Enable text to speech: `enable_tts()`
 
 
 ## Example

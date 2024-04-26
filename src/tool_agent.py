@@ -163,17 +163,12 @@ def set_busy(agent: str, thing: str):
     print(f"📝 Set {agent} to busy with {thing}.")
 
 
+def enable_tts():
+    agent.sim.addTTS("native")
+    agent.sim.callEvent("Start")
+    print(f"📝 Enabled speech output.")
+
+
 if __name__ == "__main__":
     agent = ToolAgent()
     agent.sim.run()
-    # examples
-    # "You are a helpful but really whiny robot."
-    # agent.plan_with_functions("Grasp a bottle")
-    # agent.plan_with_functions("Tell me a joke")
-
-    # You are a helpful robot. Be very apologetic if you cannot do what I ask.
-    # agent.plan_with_functions("Grasp a bottle and put in on a box")
-    # agent.plan_with_functions("You are really shaky. Never grasp anything again!")
-
-    # agent.plan_with_functions("Grasp exactly one bottle and tell me which one you grasped in parallel")
-    # agent.tools['get_scene_entities']()
