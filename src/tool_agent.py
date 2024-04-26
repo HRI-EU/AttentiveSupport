@@ -67,8 +67,6 @@ class ToolAgent:
         self.model = gpt_config.model_name
         self.temperature = gpt_config.temperature
 
-        self.sim = SIM
-
         # Character and tools
         self.character: str = gpt_config.system_prompt
         self.function_resolver = TOOLS
@@ -164,11 +162,11 @@ def set_busy(agent: str, thing: str):
 
 
 def enable_tts():
-    agent.sim.addTTS("native")
-    agent.sim.callEvent("Start")
+    SIM.addTTS("native")
+    SIM.callEvent("Start")
     print(f"📝 Enabled speech output.")
 
 
 if __name__ == "__main__":
     agent = ToolAgent()
-    agent.sim.run()
+    SIM.run()
