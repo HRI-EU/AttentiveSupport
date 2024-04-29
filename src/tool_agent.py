@@ -45,6 +45,18 @@ import openai
 from function_analyzer import FunctionAnalyzer
 import gpt_config
 
+
+class MissingEnvironmentVariable(Exception):
+    pass
+
+
+if "OPENAI_API_KEY" not in os.environ:
+    raise MissingEnvironmentVariable(
+        "Please set an environment variable with your OPENAI_API_KEY. "
+        "See https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety"
+    )
+
+
 # import tools
 tool_module = importlib.import_module(gpt_config.tool_module)
 TOOLS = {n: f for n, f in inspect.getmembers(tool_module) if inspect.isfunction(f)}
