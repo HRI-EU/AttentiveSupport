@@ -168,14 +168,13 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     :param target_container_name: The name of the container to pour into.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
+    success = SIMULATION.plan(
         (
             f"get {source_container_name} duration 8;"
             f"pour {source_container_name} {target_container_name};"
             f"put {source_container_name} table duration 7;"
             "pose default duration 4"
         ),
-        ARG1,
     )
     if success:
         return f"You poured {source_container_name} into {target_container_name}."
@@ -202,18 +201,17 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to hand over the object to. The person must be available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
+    success = SIMULATION.plan(
         (
             f"get {object_name} duration 8;"
             f"pass {object_name} {person_name};"
             "pose default duration 4"
         ),
-        ARG1,
     )
     if success:
         return f"Passed {object_name} to {person_name}"
     else:
-        success = SIMULATION.planActionSequence(
+        success = SIMULATION.plan(
             (
                 f"get {object_name} duration 8;"
                 f"put {object_name};"
@@ -221,7 +219,6 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
                 f"pass {object_name} {person_name};"
                 "pose default duration 4"
             ),
-            ARG1,
         )
     if success:
         return f"You moved {object_name} to {person_name}."
@@ -236,18 +233,17 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to move the object to. The person must be available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
+    success = SIMULATION.plan(
         (
             f"get {object_name} duration 8;"
             f"put {object_name} near {person_name} duration 7;"
             "pose default duration 4"
         ),
-        ARG1,
     )
     if success:
         return f"You moved {object_name} to {person_name}."
     else:
-        success = SIMULATION.planActionSequence(
+        success = SIMULATION.plan(
             (
                 f"get {object_name} duration 8;"
                 f"put {object_name};"
@@ -255,7 +251,6 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
                 f"put {object_name} near {person_name} duration 7;"
                 "pose default duration 4"
             ),
-            ARG1,
         )
     if success:
         return f"You moved {object_name} to {person_name}."
@@ -270,18 +265,17 @@ def move_object_away_from_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to move the object to. The person must be available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
+    success = SIMULATION.plan(
         (
             f"get {object_name} duration 8;"
             f"put {object_name} far {person_name} duration 7;"
             "pose default duration 4"
         ),
-        ARG1,
     )
     if success:
         return f"You moved {object_name} to {person_name}."
     else:
-        success = SIMULATION.planActionSequence(
+        success = SIMULATION.plan(
             (
                 f"get {object_name} duration 8;"
                 f"put {object_name};"
@@ -289,7 +283,6 @@ def move_object_away_from_person(object_name: str, person_name: str) -> str:
                 f"put {object_name} far {person_name} duration 7;"
                 "pose default duration 4"
             ),
-            ARG1,
         )
     if success:
         return f"You moved {object_name} away from {person_name}."
@@ -303,12 +296,11 @@ def point_at_object_or_agent(name: str) -> str:
     :param name: The name of the object or person you want to point at.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
+    success = SIMULATION.plan(
         (
             f"point {name};"
             "pose default duration 4"
         ),
-        ARG1,
     )
     if success:
         return f"You pointed at {name}."
