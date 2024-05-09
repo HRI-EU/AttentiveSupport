@@ -32,8 +32,8 @@ $(document).ready(function() {
     var options = {
 			slidesToScroll: 1,
 			slidesToShow: 1,
-			loop: true,
-			infinite: true,
+			loop: false,
+			infinite: false,
 			autoplay: false,
 			autoplaySpeed: 3000,
     }
