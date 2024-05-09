@@ -304,7 +304,7 @@
 
       <div>
         <h2 class="subtitle has-text-centered">
-          Listing 1: Robot character
+          Robot character
         </h2>
         <pre>
           <code class="language-python">
@@ -335,6 +335,32 @@
         </pre>
       </div>
 
+      <div>
+        <h2 class="subtitle has-text-centered">
+          The description of the function "can_person_see_object"
+        </h2>
+        <pre>
+          <code class="language-python">
+def can_person_see_object(self, person_name: str, object_name: str) -> str:
+    """
+    Check if the person can see the object. If the person cannot see the object, it would be hindered from helping with the object.
+
+    :param person_name: The name of the person to check. The person must be available in the scene.
+    :param object_name: The name of the object to check. The object must be available in the scene.
+    :return: Result message.
+    """
+    ...
+    
+    if result is None or len(result) != 1:
+        return f"It could not be determined if {person_name} can see {object_name}. There were technical problems."
+
+    if result[0]["is_visible"]:
+        return f"{person_name} can see {object_name}."
+
+    return f"{person_name} cannot see {object_name}, it is occluded by {self.id_to_utterance_mapping[result[0]['occluding_objects'][0]]}"
+          </code>
+        </pre>
+      </div>
 
     </div>
   </div>
