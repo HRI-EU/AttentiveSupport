@@ -12,8 +12,11 @@ See the [project website](https://hri-eu.github.io/AttentiveSupport/) for an ove
 Prerequisites for building the simulator workspace: g++, cmake, Libxml2, Qt5, qwt, OpenSceneGraph, Bullet Physics
 
 <details>
-<summary>Ubuntu</summary>
-libxml2-dev, qt5-default, libqwt-qt5-dev, libopenscenegraph-dev, libbullet-dev
+<summary>Ubuntu 20</summary>
+libxml2-dev, qt5-default, libqwt-qt5-dev, libopenscenegraph-dev, libbullet-dev, libasio-dev, libzmq3-dev 
+</details>
+<summary>Ubuntu 22</summary>
+libxml2-dev, qtbase5-dev, qt5-qmake, libqwt-qt5-dev, libopenscenegraph-dev, libbullet-dev, libasio-dev, libzmq3-dev 
 </details>
 <details>
 <summary>Fedora</summary>
