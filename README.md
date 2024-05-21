@@ -24,7 +24,7 @@ libxml2-dev, qtbase5-dev, qt5-qmake, libqwt-qt5-dev, libopenscenegraph-dev, libb
 cmake, gcc-c++, OpenSceneGraph-devel, libxml2, qwt-qt5-devel, bullet-devel, asio-devel, cppzmq-devel, python3-devel
 </details>
 
-Clone this repo and change into it: `git clone git@github.com:HRI-EU/AttentiveSupport.git && cd AttentiveSupport` \
+Clone this repo and change into it: `git clone https://github.com/HRI-EU/AttentiveSupport.git && cd AttentiveSupport` \
 You can either run the setup script: `bash build.sh` or follow these steps:
 1. Get the submodules: `git submodule update --init --recursive`
 2. Create a `build` directory in the AttentiveSupport directory: `mkdir -p build` and change into it `cd build`
