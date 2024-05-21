@@ -15,6 +15,7 @@ Prerequisites for building the simulator workspace: g++, cmake, Libxml2, Qt5, qw
 <summary>Ubuntu 20</summary>
 libxml2-dev, qt5-default, libqwt-qt5-dev, libopenscenegraph-dev, libbullet-dev, libasio-dev, libzmq3-dev 
 </details>
+<details>
 <summary>Ubuntu 22</summary>
 libxml2-dev, qtbase5-dev, qt5-qmake, libqwt-qt5-dev, libopenscenegraph-dev, libbullet-dev, libasio-dev, libzmq3-dev 
 </details>
