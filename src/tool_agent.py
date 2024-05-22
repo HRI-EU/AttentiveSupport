@@ -94,21 +94,29 @@ class ToolAgent:
         ]
 
     def _query_llm(
-        self, messages, tool_choice: Union[Literal["none", "auto"]] = "auto"
+        self,
+        messages,
+        tool_choice: Union[Literal["none", "auto"]] = "auto",
+        retries: int = 3,
     ):
-        response = ""
-        try:
-            response = self.openai_client.chat.completions.create(
-                model=self.model,
-                temperature=self.temperature,
-                messages=messages,
-                tools=self.tools,
-                tool_choice=tool_choice,
-            )
-            logging.info(response)
-        except openai.OpenAIError as e:
-            logging.error(f"❌ OpenAI error: {e}")
-            pass
+        response, i = None, 0
+        while True:
+            i += 1
+            try:
+                response = self.openai_client.chat.completions.create(
+                    model=self.model,
+                    temperature=self.temperature,
+                    messages=messages,
+                    tools=self.tools,
+                    tool_choice=tool_choice,
+                )
+                logging.info(response)
+            except openai.OpenAIError as e:
+                logging.error(f"❌ OpenAI error, retrying ({e})")
+            if response:
+                break
+            if i >= retries:
+                raise Exception(f"❌ {retries} OpenAI errors, aborting.")
         return response
 
     def plan_with_functions(self, text_input: str) -> None:
