@@ -29,6 +29,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+import argparse
 import importlib
 import inspect
 import json
@@ -43,7 +44,6 @@ from typing import (
 import openai
 
 from function_analyzer import FunctionAnalyzer
-import gpt_config
 
 
 class MissingEnvironmentVariable(Exception):
@@ -57,10 +57,8 @@ if "OPENAI_API_KEY" not in os.environ:
     )
 
 
-# import tools
-tool_module = importlib.import_module(gpt_config.tool_module)
-TOOLS = {n: f for n, f in inspect.getmembers(tool_module) if inspect.isfunction(f)}
-SIM = tool_module.SIMULATION
+# Placeholder for simulation from tools, is loaded during agent init
+SIM = None
 
 
 class ToolAgent:
@@ -70,22 +68,32 @@ class ToolAgent:
 
     def __init__(
         self,
+        config_module: str = "gpt_config",
     ) -> None:
-        # llm settings
+        # Dynamic config loading
+        config = importlib.import_module(config_module)
+        tool_module = importlib.import_module(config.tool_module)
+        tools = {
+            n: f for n, f in inspect.getmembers(tool_module) if inspect.isfunction(f)
+        }
+        global SIM
+        SIM = tool_module.SIMULATION
+
+        # LLM settings
         if not os.path.isfile(os.getenv("OPENAI_API_KEY")):
             openai.api_key_path = None
         openai.api_key = os.getenv("OPENAI_API_KEY")
         self.openai_client = openai.OpenAI()
-        self.model = gpt_config.model_name
-        self.temperature = gpt_config.temperature
+        self.model = config.model_name
+        self.temperature = config.temperature
 
         # Character and tools
-        self.character: str = gpt_config.system_prompt
-        self.function_resolver = TOOLS
+        self.character: str = config.system_prompt
+        self.function_resolver = tools
         self.function_analyzer = FunctionAnalyzer()
-        self.tools = [
+        self.tool_descriptions = [
             self.function_analyzer.analyze_function(function_)
-            for function_ in TOOLS.values()
+            for function_ in tools.values()
         ]
         self.amnesic: bool = False
 
@@ -107,7 +115,7 @@ class ToolAgent:
                     model=self.model,
                     temperature=self.temperature,
                     messages=messages,
-                    tools=self.tools,
+                    tools=self.tool_descriptions,
                     tool_choice=tool_choice,
                 )
                 logging.info(response)
@@ -188,5 +196,9 @@ def enable_tts():
 
 
 if __name__ == "__main__":
-    agent = ToolAgent()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", action="store", dest="config", default="gpt_config")
+    args = parser.parse_args()
+
+    agent = ToolAgent(config_module=args.config)
     SIM.run()

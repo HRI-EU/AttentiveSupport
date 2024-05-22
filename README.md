@@ -47,13 +47,14 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 
 ### Customizing the agent
 * Change the agent's character:
-  * Either via the `system_prompt` variable in `gpt_config`
+  * Either via the `system_prompt` variable in `gpt_config.py`
   * Or directly, note that this is not persistent: `agent.character = "You are a whiny but helpful robot."`
 * Provide the agent with further tools:
   * Define tools as Python functions in `tools.py`
   * Make sure to use type hints and add docstrings in the Sphinx notation. This is important so that the `function_analyzer.py` can generate the function descriptions for openai automagically
   * For inspiration, check out some more examples in `src/tool_variants/extended_tools.py`
-* Change generic settings such as the model used and its temperature via `gpt_config`
+* Change generic settings such as the model used and its temperature via `gpt_config.py`
+* Note: The `gpt_config.py` file can either be changed directly, or the filename of a custom config file can be passed to the agent when running in interactive mode: `python -i src/tool_agent.py --config=custom_config`
 
 ### Additional features
 * Setting an agent as busy: `set_busy("Daniel", "iphone5")`
