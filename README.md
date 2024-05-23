@@ -37,6 +37,20 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 
 ## Instructions
 
+### Containerized Runtime
+* (tested with `podman` but you should also be able to run it on `docker`)
+* Build the container: `pomdan build -t localhost/attentive_support .`
+* Run the container with display support (example is based on wayland) and don't
+  forget to set the `OPENAI_API_KEY` as environment variable:
+  ```
+  podman run \
+    -e OPENAI_API_KEY=replace_me \
+    -e WAYLAND_DISPLAY \
+    --net=host \
+    -it \
+    localhost\attentive_support
+  ```
+
 ### Running the agent
 * Activate the virtual environment: `source .venv/bin/activate`
 * Run the agent in interactive mode, from the AttentiveSupport directory: `python -i src/tool_agent.py`
