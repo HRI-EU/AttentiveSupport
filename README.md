@@ -38,18 +38,30 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 ## Instructions
 
 ### Containerized Runtime
-* (tested with `podman` and `docker`)
+* (tested with `podman` and rootless `docker`)
 * Build the container: `docker build -t localhost/attentive_support .`
-* Run the container with display support (example is based on wayland) and don't
-  forget to set the `OPENAI_API_KEY` as environment variable:
-  ```
-  docker run \
-    -e OPENAI_API_KEY=replace_me \
-    -e WAYLAND_DISPLAY \
-    --net=host \
-    -it \
-    localhost\attentive_support
-  ```
+* Run the container with display support and don't
+  forget to set the `OPENAI_API_KEY` as environment variable.
+
+**podman**:
+```
+docker run \
+-e OPENAI_API_KEY=replace_me \
+-e WAYLAND_DISPLAY \
+--net=host \
+-it \
+localhost\attentive_support
+```
+
+**docker**:
+```
+docker run \
+-e OPENAI_API_KEY=replace_me \
+-v /tmp/.X11-unix:/tmp/.X11-unix \
+-it \
+localhost\attentive_support
+```
+
 
 ### Containerized Runtime (remote, rootless with internal ssh server)
 In certain scenarios it might not be possible to display the graphical window.

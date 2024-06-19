@@ -37,7 +37,7 @@ RUN apt-get update && \
     apt-get install --yes --no-install-recommends \
       build-essential=12.9ubuntu3 \
       cmake=3.22.1-1ubuntu1.22.04.2 \
-      git=1:2.34.1-1ubuntu1.10 \
+      git=1:2.34.1-1ubuntu1.11 \
       libasio-dev=1:1.18.1-1 \
       libbullet-dev=3.06+dfsg-4build2 \
       libopenscenegraph-dev=3.6.5+dfsg1-7build3 \
@@ -61,7 +61,7 @@ RUN mkdir /attentive_support/build
 WORKDIR /attentive_support/build
 
 RUN cmake /attentive_support/src/Smile -DCMAKE_INSTALL_PREFIX=/attentive_support/install && \
-    make -j && \
+    make -j 8 && \
     make install
 
 RUN pip install --no-cache-dir -r /attentive_support/requirements.txt
