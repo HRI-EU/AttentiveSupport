@@ -50,7 +50,7 @@ docker run \
 -e WAYLAND_DISPLAY \
 --net=host \
 -it \
-localhost\attentive_support
+localhost/attentive_support
 ```
 
 **docker**:
@@ -59,7 +59,7 @@ docker run \
 -e OPENAI_API_KEY=replace_me \
 -v /tmp/.X11-unix:/tmp/.X11-unix \
 -it \
-localhost\attentive_support
+localhost/attentive_support
 ```
 
 
@@ -72,7 +72,7 @@ Afterwards the image can be started with:
 docker run \
   -it \
   -p 2022:22 \
-  localhost\attentive_support
+  localhost/attentive_support
 ```
 This starts an ssh server with on port 2022 that can be accessed with usernaem `root` and password `hri`.
 Afterwards the example script can be started with:
