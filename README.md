@@ -37,6 +37,51 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 
 ## Instructions
 
+### Containerized Runtime
+* (tested with `podman` and rootless `docker`)
+* Build the container: `docker build -t localhost/attentive_support .`
+* Run the container with display support and don't
+  forget to set the `OPENAI_API_KEY` as environment variable.
+
+**podman**:
+```
+docker run \
+-e OPENAI_API_KEY=replace_me \
+-e WAYLAND_DISPLAY \
+--net=host \
+-it \
+localhost/attentive_support
+```
+
+**docker**:
+```
+docker run \
+-e OPENAI_API_KEY=replace_me \
+-v /tmp/.X11-unix:/tmp/.X11-unix \
+-it \
+localhost/attentive_support
+```
+
+
+### Containerized Runtime (remote, rootless with internal ssh server)
+In certain scenarios it might not be possible to display the graphical window.
+For example when running docker rootless on a remote machine with X11.
+For these scenarios, the docker image can be built with the option `docker build --build-arg WITH_SSH_SERVER=true -t localhost/attentive_support .`.
+Afterwards the image can be started with:
+```
+docker run \
+  -it \
+  -p 2022:22 \
+  localhost/attentive_support
+```
+This starts an ssh server with on port 2022 that can be accessed with usernaem `root` and password `hri`.
+Afterwards the example script can be started with:
+```
+export RCSVIEWER_SIMPLEGRAPHICS=True
+export OPENAI_API_KEY=replace_me
+/usr/bin/python -i /attentive_support/src/tool_agent.py
+```
+
 ### Running the agent
 * Activate the virtual environment: `source .venv/bin/activate`
 * Run the agent in interactive mode, from the AttentiveSupport directory: `python -i src/tool_agent.py`
