@@ -88,9 +88,9 @@ SIMULATION.addTTS("native")
 ARG1 = True
 
 
-def get_objects() -> str:
+def inspect_objects() -> str:
     """
-    Get all objects that are available in the scene. You can see all these objects.
+    Look at and memorize all objects in the scene. You can see all these objects.
 
     :return: Result message.
     """
@@ -144,6 +144,7 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
         )
     if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
+    print (f"You were not able to pour {source_container_name} into {target_container_name}: {res}")
     return f"You were not able to pour {source_container_name} into {target_container_name}: {res}"
 
 
@@ -285,3 +286,45 @@ def get_human_friendly_time() -> str:
         time_str = f"{hours + 1} o'clock {period}"
 
     return "It is " + time_str
+
+
+def lookat_object(object_name: str) -> str:
+    """
+    You get the object, put it in front of your camera, and look at it.
+
+    :param object_name: The name of the object to look at. The object must be available in the scene.
+    :return: Result message.
+    """
+    support = SIMULATION.get_parent(object_name)
+    res = SIMULATION.plan_fb(
+        (
+            f"get {object_name};"
+            f"inspect {object_name};"
+            f"put {object_name} {support};"
+            "pose default"
+        ),
+    )
+    if res.startswith("SUCCESS"):
+        return f"You looked at the {object_name}."
+    return f"You couldn't look at the {object_name}: {res}."
+
+
+def shake_object(object_name: str) -> str:
+    """
+    You shake an object.
+
+    :param object_name: The name of the object to shake. The object must be available in the scene.
+    :return: Result message.
+    """
+    support = SIMULATION.get_parent(object_name)
+    res = SIMULATION.plan_fb(
+        (
+            f"get {object_name};"
+            f"shake {object_name};"
+            f"put {object_name} {support};"
+            "pose default"
+        ),
+    )
+    if res.startswith("SUCCESS"):
+        return f"You shaked the {object_name}."
+    return f"You couldn't shake the {object_name}: {res}."
