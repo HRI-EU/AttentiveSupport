@@ -97,6 +97,22 @@ class ToolAgent:
         ]
         self.amnesic: bool = False
 
+        # Self inspection
+        check_available_tools_description = {
+            "type": "function",
+            "function": {
+                "name": "check_available_tools",
+                "description": "Check which tools you as an agent have currently available.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                },
+            },
+        }
+        self.tool_descriptions.append(check_available_tools_description)
+        self.function_resolver["check_available_tools"] = self.check_available_tools
+
         self.messages = [
             {"role": "system", "content": self.character},
         ]
@@ -175,6 +191,13 @@ class ToolAgent:
             self.reset()
 
         print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
+
+    def check_available_tools(self) -> str:
+        tools = [
+            f'{td["function"]["name"]}: {td["function"]["description"]}'
+            for td in self.tool_descriptions
+        ]
+        return "The tools you have available are:\n" + "\n".join(tools)
 
     def reset(self) -> None:
         self.messages = [
