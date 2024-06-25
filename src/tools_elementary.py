@@ -143,7 +143,7 @@ def pick_and_place(object_name: str, place_name: str) -> str:
         (
             f"get {object_name};"
             f"put {object_name} {place_name};"
-            "pose default"
+            "pose default,default_up,default_high"
         ),
     )
     if res.startswith("SUCCESS"):
@@ -155,7 +155,7 @@ def pick_and_place(object_name: str, place_name: str) -> str:
                 f"put {object_name};"
                 f"get {object_name};"
                 f"put {object_name} {place_name};"
-                "pose default"
+                "pose default,default_up,default_high"
             ),
         )
     if res.startswith("SUCCESS"):
@@ -173,7 +173,7 @@ def point_at_object(name: str) -> str:
     res = SIMULATION.plan_fb(
         (
             f"point {name};"
-            "pose default"
+            "pose default,default_up,default_high"
         ),
     )
     if res.startswith("SUCCESS"):
@@ -203,7 +203,7 @@ def get_object_out_of_way(object_name: str, away_from: str) -> str:
         (
             getCommand +
             f"put {object_name} far {away_from};"
-            "pose default"
+            "pose default,default_up,default_high"
         ),
     )
     if res.startswith("SUCCESS"):
@@ -324,6 +324,23 @@ def drop_object(object_name: str) -> str:
     return f"You couldn't drop the {object_name}: {res}."
 
 
+def weigh_object(object_name: str) -> str:
+    """
+    Weigh an object. After weighing, you hold the object in your hand in front of your face. 
+
+    :param object_name: The name of the object to weigh. 
+    :return: Result message.
+    """
+    res = SIMULATION.plan_fb(
+        (
+            f"weigh {object_name};"
+        ),
+    )
+    if res.startswith("SUCCESS"):
+        return f"You weighed the {object_name}. It weighs 0.6 kg"
+    return f"You couldn't weigh the {object_name}: {res}."
+
+
 def put_down_object(object_name: str, put_location: str) -> str:
     """
     Put an object on the put location. The object must be grasped before putting it down. After putting it down, the object is no longer held in your hand, but standing on the put_location.
@@ -335,7 +352,7 @@ def put_down_object(object_name: str, put_location: str) -> str:
     res = SIMULATION.plan_fb(
         (
             f"put {object_name} {put_location};"
-            "pose default"
+            "pose default,default_up,default_high"
         ),
     )
     if res.startswith("SUCCESS"):
@@ -366,7 +383,7 @@ def pass_object_to_person(object_name: str, person_name: str) -> str:
         (
             getCommand +
             f"pass {object_name} {person_name};"
-            "pose default"
+            "pose default,default_up,default_high"
         ),
     )
     if res.startswith("SUCCESS"):
@@ -378,7 +395,7 @@ def pass_object_to_person(object_name: str, person_name: str) -> str:
                 f"put {object_name};"
                 f"get {object_name};"
                 f"pass {object_name} {person_name};"
-                "pose default"
+                "pose default,default_up,default_high"
             ),
         )
     if res.startswith("SUCCESS"):
@@ -397,3 +414,54 @@ def get_held_objects(agent_name: str) -> str:
     if len(result["objects"]) == 0:
         return f"The agent {agent_name} does not hold anything in its hands."
     return f"The agent {agent_name} holds these objects in its hands: " + ", ".join(result["objects"]) + "."
+
+
+def watching_you() -> str:
+    """
+    Do watching-you gesture: Pointing with fingers to eyes, then to person. You MUST use this pose if you think that somebody is not honest with you, is fooling you, is doing a joke with you, or tries to harm you.
+
+    :return: Result message.
+    """
+    res = SIMULATION.plan_fb(
+        (
+            "pose watchit_eye; pose watchit_point; pose default,default_up,default_high"
+        ),
+    )
+
+    if res.startswith("SUCCESS"):
+        return "You successfully did the watchit pose."
+    return "You coudn't do the watchit pose."
+
+
+def relax() -> str:
+    """
+    Get into a relaxed pose. Before you do this, make sure that you don't hold anything in your hands using the get_held_objects() function. Check this, and put down the objects held in the hands before getting into the relax pose. The relay pose is important in cases you can't move well or have gotten stuck somehow.
+
+    :return: Result message.
+    """
+    res = SIMULATION.plan_fb(
+        (
+            "pose default,default_up,default_high"
+        ),
+    )
+
+    if res.startswith("SUCCESS"):
+        return "You successfully relaxed."
+    return "You coudn't get into a relaxed pose."
+
+
+def open_fingers() -> str:
+    """
+    Open your fingers. Objects might fall out if you hold them in your hand.
+
+    :return: Result message.
+    """
+    res = SIMULATION.plan_fb(
+        (
+            "pose open_fingers"
+        ),
+    )
+
+    if res.startswith("SUCCESS"):
+        return "You successfully opened your fingers."
+    return "You coudn't open your fingers."
