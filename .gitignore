@@ -158,3 +158,9 @@ cython_debug/
 
 # Custom
 *.dot
+
+# Emacs backup files
+*~
+
+# Artistic style indentation backup files
+*.before_astyle

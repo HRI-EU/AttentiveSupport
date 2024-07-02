@@ -78,3 +78,4 @@ tool_module = "tools_elementary"
 # agent.plan_with_functions("What is your character?")
 # agent.plan_with_functions("We will prepare a Spezi drink. How about you get us going?")
 # agent.plan_with_functions("Can you play around with the objects and find out more about them?")
+# agent.plan_with_functions("For shwowing curiosity, you should ask questions about the task, the recipe and the ingredients")

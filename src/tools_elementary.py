@@ -108,10 +108,11 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     :param target_container_name: The name of the container to pour into.
     :return: Result message.
     """
-    support = SIMULATION.get_parent(source_container_name)
+    support = SIMULATION.get_parent_entity(source_container_name)
+    support_frame = SIMULATION.get_closest_parent_affordance(source_container_name, "Supportable")
     res = SIMULATION.plan_fb(
         (
-            f"pour {source_container_name} {target_container_name};"
+            f"get {source_container_name}; pour {source_container_name} {target_container_name}; put {source_container_name} {support} frame {support_frame}"
         ),
     )
     if res.startswith("SUCCESS"):
@@ -211,7 +212,7 @@ def get_object_out_of_way(object_name: str, away_from: str) -> str:
     return f"You couldn't move the {object_name} away from the {away_from}: {res}."
 
 
-def get_parent(name: str) -> str:
+def get_parent_entity(name: str) -> str:
     """
     Returns the parent of an object. If the returned name is an empty string, the object has no parent. 
     The returned parent is typically the object in which anotherone is standing, or a hand that
@@ -220,7 +221,7 @@ def get_parent(name: str) -> str:
     :param name: The name of the object you want to know the parent from.
     :return: Name of the parent, or empty string if the object has no parent.
     """
-    res = SIMULATION.get_parent(
+    res = SIMULATION.get_parent_entity(
         (
             f"{name}"
         ),
@@ -275,7 +276,7 @@ def shake_object(object_name: str) -> str:
     :param object_name: The name of the object to shake. 
     :return: Result message.
     """
-    support = SIMULATION.get_parent(object_name)
+    support = SIMULATION.get_parent_entity(object_name)
     res = SIMULATION.plan_fb(
         (
             f"shake {object_name};"
@@ -293,7 +294,7 @@ def grasp_object(object_name: str) -> str:
     :param object_name: The name of the object to grasp. 
     :return: Result message.
     """
-    support = SIMULATION.get_parent(object_name)
+    support = SIMULATION.get_parent_entity(object_name)
     res = SIMULATION.plan_fb(
         (
             f"get {object_name};"
