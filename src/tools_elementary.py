@@ -102,7 +102,8 @@ def inspect_objects() -> str:
 
 def pour_into(source_container_name: str, target_container_name: str) -> str:
     """
-    Pour a source container into a target container. You must grasp the source container before pouring it. You hold it in your hand after finishing.
+    Pour a source container into a target container. You must grasp the source container before 
+    pouring it. You hold it in your hand after finishing.
 
     :param source_container_name: The name of the container to pour from.
     :param target_container_name: The name of the container to pour into.
@@ -112,7 +113,9 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     support_frame = SIMULATION.get_closest_parent_affordance(source_container_name, "Supportable")
     res = SIMULATION.plan_fb(
         (
-            f"get {source_container_name}; pour {source_container_name} {target_container_name}; put {source_container_name} {support} frame {support_frame}"
+            f"get {source_container_name};"
+            f"pour {source_container_name} {target_container_name};"
+            f"put {source_container_name} {support} frame {support_frame}"
         ),
     )
     if res.startswith("SUCCESS"):
@@ -231,7 +234,7 @@ def get_parent_entity(name: str) -> str:
 
 def is_object_held_in_hand(object_name: str) -> str:
     """
-    Returns the name of the hand in which the object is held, or an empty string if it is not held. 
+    Returns the name of the hand in which the object is held, or an empty string if it is not held.
 
     :param object_name: The name of the object you want to know the parent from.
     :return: Name of the holding hand, or empty string if the object has no parent.
@@ -246,7 +249,8 @@ def is_object_held_in_hand(object_name: str) -> str:
     
 def lookat_object(object_name: str) -> str:
     """
-    Move the object in front of your camera, and look at it. You must grasp the object before looking at it. After looking at it, the object is still in your hand.
+    Move the object in front of your camera, and look at it. You must grasp the object before 
+    looking at it. After looking at it, the object is still in your hand.
 
     :param object_name: The name of the object to look at. 
     :return: Result message.
@@ -287,19 +291,29 @@ def shake_object(object_name: str) -> str:
     return f"You couldn't shake the {object_name}: {res}."
 
 
-def grasp_object(object_name: str) -> str:
+def grasp_object(object_name: str, slow_speed: str="fast") -> str:
     """
     Grasp an object. After grasping, you hold the object in your hand. 
 
     :param object_name: The name of the object to grasp. 
+    :param slow_speed: Move slow if str is slow, for instance when is it necessary to be careful. 
     :return: Result message.
     """
+    durationScaling = SIMULATION.getDurationScaling()
     support = SIMULATION.get_parent_entity(object_name)
+
+    if slow_speed=="slow":
+        SIMULATION.setDurationScaling(5.0)
+        
     res = SIMULATION.plan_fb(
         (
             f"get {object_name};"
         ),
     )
+
+    if slow_speed=="slow":
+        SIMULATION.setDurationScaling(durationScaling)
+    
     if res.startswith("SUCCESS"):
         resStr = f"You grasped the {object_name}"
         if support:
@@ -344,7 +358,8 @@ def weigh_object(object_name: str) -> str:
 
 def put_down_object(object_name: str, put_location: str) -> str:
     """
-    Put an object on the put location. The object must be grasped before putting it down. After putting it down, the object is no longer held in your hand, but standing on the put_location.
+    Put an object on the put location. The object must be grasped before putting it down. After 
+    putting it down, the object is no longer held in your hand, but standing on the put_location.
 
     :param object_name: The name of the object to move away. The object must be available in the scene.
     :param put_location: The name of the object or support surface you put the object on. 
@@ -363,7 +378,8 @@ def put_down_object(object_name: str, put_location: str) -> str:
 
 def pass_object_to_person(object_name: str, person_name: str) -> str:
     """
-    Pass (or hand over) an object to a person. The person will have the object in its hand after passing it. It is more polite to pass an object to a person than to put it in front of her or him.
+    Pass (or hand over) an object to a person. The person will have the object in its hand after 
+    passing it. It is more polite to pass an object to a person than to put it in front of her or him.
 
     :param object_name: The name of the object to hand over. The object must be available in the scene.
     :param person_name: The name of the person to hand over the object to. The person must be available in the scene.
@@ -419,7 +435,9 @@ def get_held_objects(agent_name: str) -> str:
 
 def watching_you() -> str:
     """
-    Do watching-you gesture: Pointing with fingers to eyes, then to person. You MUST use this pose if you think that somebody is not honest with you, is fooling you, is doing a joke with you, or tries to harm you.
+    Do watching-you gesture: Pointing with fingers to eyes, then to person. You MUST use this pose 
+    if you think that somebody is not honest with you, is fooling you, is doing a joke with you, 
+    or tries to harm you.
 
     :return: Result message.
     """
@@ -436,7 +454,10 @@ def watching_you() -> str:
 
 def relax() -> str:
     """
-    Get into a relaxed pose. Before you do this, make sure that you don't hold anything in your hands using the get_held_objects() function. Check this, and put down the objects held in the hands before getting into the relax pose. The relay pose is important in cases you can't move well or have gotten stuck somehow.
+    Get into a relaxed pose. Before you do this, make sure that you don't hold anything in your 
+    hands using the get_held_objects() function. Check this, and put down the objects held in the 
+    hands before getting into the relax pose. The relay pose is important in cases you can't move 
+    well or have gotten stuck somehow.
 
     :return: Result message.
     """
@@ -466,3 +487,25 @@ def open_fingers() -> str:
     if res.startswith("SUCCESS"):
         return "You successfully opened your fingers."
     return "You coudn't open your fingers."
+
+
+def set_slow_speed() -> str:
+    """
+    Makes the robot move slow. This is for instance useful if the task requires to be careful.
+
+    :return: Result message.
+    """
+    res = SIMULATION.setDurationScaling(2.0)
+
+    return "Now the robot moves slow. To make it move fast, call set_fast_speed()."
+
+
+def set_normal_speed() -> str:
+    """
+    Makes the robot move with normal speed.
+
+    :return: Result message.
+    """
+    res = SIMULATION.setDefaultDurationScaling()
+
+    return "Now the robot moves with normal speed."
