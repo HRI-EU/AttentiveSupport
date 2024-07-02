@@ -92,8 +92,8 @@ class FunctionAnalyzer:
                 f"Function '{function_name}' has arguments '{arguments}' but type hints only for '{type_hints}'."
             )
 
-        # Get non-optional arguments.
-        required_arguments = [
+        # Get well-defined arguments.
+        well_defined_arguments = [
             argument
             for argument, type_ in type_hints.items()
             if not (
@@ -101,11 +101,18 @@ class FunctionAnalyzer:
                 and type(None) in typing.get_args(type_)
             )
         ]
+        # Get required arguments.
+        signature = inspect.signature(function_)
+        required_arguments = [
+            arg
+            for arg in well_defined_arguments
+            if signature.parameters.get(arg).default is inspect.Parameter.empty
+        ]
         # Convert type hints to basic types.
         type_hints_basic = {
             argument: (
                 type_
-                if argument in required_arguments
+                if argument in well_defined_arguments
                 else [t for t in typing.get_args(type_) if t][0]
             )
             for argument, type_ in type_hints.items()
