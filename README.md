@@ -34,14 +34,10 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 5. Make sure you have an OpenAI API key set up, see the [official instructions](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety)
 6. Enjoy 🕹️
 
-
-## Instructions
-
 ### Containerized Runtime
-* (tested with `podman` and rootless `docker`)
+* Tested with `podman` and rootless `docker`
 * Build the container: `docker build -t localhost/attentive_support .`
-* Run the container with display support and don't
-  forget to set the `OPENAI_API_KEY` as environment variable.
+* Run the container with display support and don't forget to set the `OPENAI_API_KEY` as environment variable.
 
 **podman**:
 ```
@@ -62,25 +58,27 @@ docker run \
 localhost/attentive_support
 ```
 
-
 ### Containerized Runtime (remote, rootless with internal ssh server)
 In certain scenarios it might not be possible to display the graphical window.
 For example when running docker rootless on a remote machine with X11.
 For these scenarios, the docker image can be built with the option `docker build --build-arg WITH_SSH_SERVER=true -t localhost/attentive_support .`.
-Afterwards the image can be started with:
+Then the image can be started with:
 ```
 docker run \
   -it \
   -p 2022:22 \
   localhost/attentive_support
 ```
-This starts an ssh server with on port 2022 that can be accessed with usernaem `root` and password `hri`.
-Afterwards the example script can be started with:
+This starts an ssh server on port 2022 that can be accessed with username `root` and password `hri`.
+Then the example script can be started with:
 ```
 export RCSVIEWER_SIMPLEGRAPHICS=True
 export OPENAI_API_KEY=replace_me
 /usr/bin/python -i /attentive_support/src/tool_agent.py
 ```
+
+
+## Usage
 
 ### Running the agent
 * Activate the virtual environment: `source .venv/bin/activate`
@@ -104,6 +102,7 @@ export OPENAI_API_KEY=replace_me
 ### Additional features
 * Setting an agent as busy: `set_busy("Daniel", "iphone5")`
 * Enable text to speech: `enable_tts()`
+* Speech input; start talking after executing the command and press any key (or a specified `push_key`) to stop the speech input: `agent.execute_voice_command_once()`
 
 
 ## Example
