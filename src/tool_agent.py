@@ -35,13 +35,20 @@ import inspect
 import json
 import logging
 import os.path
+from getch import getch
 
 from typing import (
     Literal,
     Union,
+    Optional,
 )
 
+import numpy as np
 import openai
+import sounddevice as sd
+import wave
+import time
+from tempfile import TemporaryDirectory
 
 from function_analyzer import FunctionAnalyzer
 
@@ -100,6 +107,8 @@ class ToolAgent:
         self.messages = [
             {"role": "system", "content": self.character},
         ]
+
+        self._user_emojis = '🧑‍💻💭 '
 
     def _query_llm(
         self,
@@ -175,6 +184,52 @@ class ToolAgent:
             self.reset()
 
         print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
+
+    def execute_voice_command_continuously(self, push_key: Optional[str] = None, samplerate: int = 44100) -> None:
+        while True:
+            print(self._user_emojis, end='', flush=True)
+            self.execute_voice_command_once(
+                push_key = push_key, 
+                samplerate = samplerate, 
+                print_emojis = False,
+            )
+            self._wait_for_key(push_key)
+
+    def execute_voice_command_once(self, push_key: Optional[str] = None, samplerate: int = 44100, print_emojis: bool = True) -> None:
+
+        # Recording the audio until a key is pressed
+        with sd.RawInputStream(samplerate=samplerate, dtype=np.int32, channels=1) as stream:
+            stream.start()
+            start = time.perf_counter()
+            self._wait_for_key(push_key)
+            audiodata, _ = stream.read(int((time.perf_counter() - start)*samplerate))
+
+        # Setting up the file (otherwise there are problems with file opening modes)
+        tempdir = TemporaryDirectory()
+        audiofile_name = os.path.join(tempdir.name, 'rec.wav')
+
+        # Writing to the file
+        with wave.open(audiofile_name, 'wb') as audiofile:
+            audiofile.setframerate(samplerate)
+            audiofile.setsampwidth(stream.samplesize)
+            audiofile.setnchannels(stream.channels)
+            audiofile.writeframes(audiodata)
+
+        # Calling the OpenAI API to transcribe the recording
+        transcription = self.openai_client.audio.transcriptions.create(model="whisper-1", file=open(audiofile_name, 'rb'), language="en", response_format="text")
+
+        # Printing the transcription out
+        print(f"{self._user_emojis if print_emojis else ''}{transcription}")
+
+        # Calling the LLM with the transcription
+        self.plan_with_functions(transcription)
+    
+    @classmethod
+    def _wait_for_key(cls, push_key: Optional[str] = None) -> None:
+        assert push_key is None or (type(push_key) == str and len(push_key) == 1)
+        c = None
+        while c is None or (c != push_key and push_key is not None): 
+            c = getch()
 
     def reset(self) -> None:
         self.messages = [
