@@ -108,7 +108,7 @@ class ToolAgent:
             {"role": "system", "content": self.character},
         ]
 
-        self._user_emojis = '🧑‍💻💭 '
+        self._user_emojis = "🧑‍🎙️  SPEECH INPUT: "
 
     def _query_llm(
         self,
@@ -185,50 +185,57 @@ class ToolAgent:
 
         print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
 
-    def execute_voice_command_continuously(self, push_key: Optional[str] = None, samplerate: int = 44100) -> None:
+    def execute_voice_command_continuously(
+        self, push_key: Optional[str] = None, samplerate: int = 44100
+    ) -> None:
         while True:
-            print(self._user_emojis, end='', flush=True)
+            print(self._user_emojis, end="", flush=True)
             self.execute_voice_command_once(
-                push_key = push_key, 
-                samplerate = samplerate, 
-                print_emojis = False,
+                push_key=push_key,
+                samplerate=samplerate,
+                print_emojis=False,
             )
             self._wait_for_key(push_key)
 
-    def execute_voice_command_once(self, push_key: Optional[str] = None, samplerate: int = 44100, print_emojis: bool = True) -> None:
-
-        # Recording the audio until a key is pressed
-        with sd.RawInputStream(samplerate=samplerate, dtype=np.int32, channels=1) as stream:
+    def execute_voice_command_once(
+        self,
+        push_key: Optional[str] = None,
+        samplerate: int = 44100,
+        print_emojis: bool = True,
+    ) -> None:
+        with sd.RawInputStream(
+            samplerate=samplerate, dtype=np.int32, channels=1
+        ) as stream:
             stream.start()
             start = time.perf_counter()
             self._wait_for_key(push_key)
-            audiodata, _ = stream.read(int((time.perf_counter() - start)*samplerate))
+            audiodata, _ = stream.read(int((time.perf_counter() - start) * samplerate))
 
-        # Setting up the file (otherwise there are problems with file opening modes)
+        # Save to file
         tempdir = TemporaryDirectory()
-        audiofile_name = os.path.join(tempdir.name, 'rec.wav')
-
-        # Writing to the file
-        with wave.open(audiofile_name, 'wb') as audiofile:
+        audiofile_name = os.path.join(tempdir.name, "rec.wav")
+        with wave.open(audiofile_name, "wb") as audiofile:
             audiofile.setframerate(samplerate)
             audiofile.setsampwidth(stream.samplesize)
             audiofile.setnchannels(stream.channels)
             audiofile.writeframes(audiodata)
 
-        # Calling the OpenAI API to transcribe the recording
-        transcription = self.openai_client.audio.transcriptions.create(model="whisper-1", file=open(audiofile_name, 'rb'), language="en", response_format="text")
+        # Transcribe via OpenAI
+        transcription = self.openai_client.audio.transcriptions.create(
+            model="whisper-1",
+            file=open(audiofile_name, "rb"),
+            language="en",
+            response_format="text",
+        )
 
-        # Printing the transcription out
         print(f"{self._user_emojis if print_emojis else ''}{transcription}")
-
-        # Calling the LLM with the transcription
         self.plan_with_functions(transcription)
-    
-    @classmethod
-    def _wait_for_key(cls, push_key: Optional[str] = None) -> None:
-        assert push_key is None or (type(push_key) == str and len(push_key) == 1)
+
+    @staticmethod
+    def _wait_for_key(push_key: Optional[str] = None) -> None:
+        assert push_key is None or (isinstance(push_key, str) and len(push_key) == 1)
         c = None
-        while c is None or (c != push_key and push_key is not None): 
+        while c is None or (c != push_key and push_key is not None):
             c = getch()
 
     def reset(self) -> None:
