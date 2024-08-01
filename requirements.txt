@@ -1,7 +1,8 @@
 black==24.3.0
 docstring-parser==0.16
+getch==1.0
+numpy==1.24.4
 openai==1.14.3
 PyYAML==6.0.1
 sounddevice==0.4.7
-getch==1.0
-wave==0.0.2
+Wave==0.0.2
