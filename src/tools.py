@@ -168,7 +168,7 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     :param target_container_name: The name of the container to pour into.
     :return: Result message.
     """
-    success = SIMULATION.plan(
+    res = SIMULATION.plan_fb(
         (
             f"get {source_container_name} duration 8;"
             f"pour {source_container_name} {target_container_name};"
@@ -176,7 +176,7 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
             "pose default duration 4"
         ),
     )
-    if success:
+    if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
     return f"You were not able to pour {source_container_name} into {target_container_name}."
 
@@ -201,17 +201,17 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to hand over the object to. The person must be available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.plan(
+    res = SIMULATION.plan_fb(
         (
             f"get {object_name} duration 8;"
             f"pass {object_name} {person_name};"
             "pose default duration 4"
         ),
     )
-    if success:
+    if res.startswith("SUCCESS"):
         return f"Passed {object_name} to {person_name}"
     else:
-        success = SIMULATION.plan(
+        res = SIMULATION.plan_fb(
             (
                 f"get {object_name} duration 8;"
                 f"put {object_name};"
@@ -220,7 +220,7 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
                 "pose default duration 4"
             ),
         )
-    if success:
+    if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     return f"You were not able to hand {object_name} over to {person_name}."
 
@@ -233,26 +233,26 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to move the object to. The person must be available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.plan(
+    res = SIMULATION.plan_fb(
         (
-            f"get {object_name} duration 8;"
-            f"put {object_name} near {person_name} duration 7;"
-            "pose default duration 4"
+            f"get {object_name};"
+            f"put {object_name} near {person_name};"
+            "pose default, default_up,default_high"
         ),
     )
-    if success:
+    if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     else:
-        success = SIMULATION.plan(
+        res = SIMULATION.plan_fb(
             (
-                f"get {object_name} duration 8;"
+                f"get {object_name};"
                 f"put {object_name};"
-                f"get {object_name} duration 8;"
-                f"put {object_name} near {person_name} duration 7;"
-                "pose default duration 4"
+                f"get {object_name};"
+                f"put {object_name} near {person_name};"
+                "pose default, default_up,default_high"
             ),
         )
-    if success:
+    if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     return f"You were not able to move {object_name} to {person_name}."
 
@@ -265,43 +265,41 @@ def move_object_away_from_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to move the object to. The person must be available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.plan(
+    holdingHand = SIMULATION.is_held_by(
         (
-            f"get {object_name} duration 8;"
-            f"put {object_name} far {person_name} duration 7;"
-            "pose default duration 4"
+            f"{object_name}"
         ),
     )
-    if success:
-        return f"You moved {object_name} to {person_name}."
-    else:
-        success = SIMULATION.plan(
-            (
-                f"get {object_name} duration 8;"
-                f"put {object_name};"
-                f"get {object_name} duration 8;"
-                f"put {object_name} far {person_name} duration 7;"
-                "pose default duration 4"
-            ),
-        )
-    if success:
-        return f"You moved {object_name} away from {person_name}."
-    return f"You were not able to move {object_name} away from {person_name}."
+    
+    getCommand = ""
+    if not holdingHand:
+        getCommand = f"get {object_name};"
+    
+    res = SIMULATION.plan_fb(
+        (
+            getCommand +
+            f"put {object_name} far {away_from};"
+            "pose default,default_up,default_high"
+        ),
+    )
+    if res.startswith("SUCCESS"):
+        return f"You moved the {object_name} away from the {away_from}."
+    return f"You couldn't move the {object_name} away from the {away_from}: {res}."
 
 
 def point_at_object_or_agent(name: str) -> str:
     """
-    You point at an object or a person. The object or person must be available in the scene.
+    Point at an object or a person. 
 
     :param name: The name of the object or person you want to point at.
     :return: Result message.
     """
-    success = SIMULATION.plan(
+    res = SIMULATION.plan_fb(
         (
             f"point {name};"
-            "pose default duration 4"
+            "pose default,default_up,default_high"
         ),
     )
-    if success:
-        return f"You pointed at {name}."
-    return f"You were not able to point at {name}."
+    if res.startswith("SUCCESS"):
+        return f"You pointed at the {name}."
+    return f"You couldn't point at the {name}: {res}."
