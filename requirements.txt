@@ -1,6 +1,6 @@
 black==24.3.0
 docstring-parser==0.16
-getch==1.0
+getch==1.0; sys_platform == 'Linux'
 numpy==1.24.4
 openai==1.14.3
 PyYAML==6.0.1

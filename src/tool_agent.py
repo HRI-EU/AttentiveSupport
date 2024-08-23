@@ -35,7 +35,16 @@ import inspect
 import json
 import logging
 import os.path
-from getch import getch
+import platform
+
+if platform.system() == "Linux":
+    from getch import getch
+elif platform.system() in ("WindowsLocal", "Windows"):
+    from msvcrt import getch
+else:
+    sys.exit(platform.system() + " not supported")
+
+
 
 from typing import (
     Literal,
