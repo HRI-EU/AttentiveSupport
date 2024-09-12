@@ -257,12 +257,12 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
     return f"You were not able to move {object_name} to {person_name}."
 
 
-def move_object_away_from_person(object_name: str, person_name: str) -> str:
+def move_object_away_from_person(object_name: str, away_from: str) -> str:
     """
     You get an object and move it away from a person.
 
     :param object_name: The name of the object to move. The object must be available in the scene.
-    :param person_name: The name of the person to move the object to. The person must be available in the scene.
+    :param away_from: The name of the person or object to move the object away from. It must be available in the scene.
     :return: Result message.
     """
     holdingHand = SIMULATION.is_held_by(
