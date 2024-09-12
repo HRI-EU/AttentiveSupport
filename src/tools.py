@@ -237,7 +237,7 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
         (
             f"get {object_name};"
             f"put {object_name} near {person_name};"
-            "pose default, default_up,default_high"
+            "pose default,default_up,default_high"
         ),
     )
     if res.startswith("SUCCESS"):
@@ -249,7 +249,7 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
                 f"put {object_name};"
                 f"get {object_name};"
                 f"put {object_name} near {person_name};"
-                "pose default, default_up,default_high"
+                "pose default,default_up,default_high"
             ),
         )
     if res.startswith("SUCCESS"):
