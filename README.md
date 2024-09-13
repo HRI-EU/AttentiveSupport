@@ -9,6 +9,7 @@ See the [project website](https://hri-eu.github.io/AttentiveSupport/) for an ove
 
 
 ## Setup
+Python 3.8 - 3.11 \
 Prerequisites for building the simulator workspace: g++, cmake, Libxml2, Qt5, qwt, OpenSceneGraph, Bullet Physics
 
 <details>
