@@ -111,6 +111,10 @@ def is_person_busy_or_idle(person_name: str) -> str:
     :param person_name: The name of the person to check. The person must be available in the scene.
     :return: Result message.
     """
+    agents = SIMULATION.get_agents()["agents"]
+    if person_name not in agents:
+        return f"There is no agent with the name {person_name} in the scene. Did you mean one of these: {agents}?"
+
     busy = SIMULATION.isBusy(person_name)
     if busy is None:
         return f"It could not be determined if {person_name} is busy. There were technical problems."
@@ -127,6 +131,13 @@ def check_hindering_reasons(person_name: str, object_name: str) -> str:
     :param object_name: The name of the object to check. The object must be available in the scene.
     :return: Result message.
     """
+    objects = SIMULATION.get_objects()["objects"]
+    if object_name not in objects:
+        return f"There is no object with the name {object_name} in the scene. Did you mean one of these: {objects}?"
+    agents = SIMULATION.get_agents()["agents"]
+    if person_name not in agents:
+        return f"There is no agent with the name {person_name} in the scene. Did you mean one of these: {agents}?"
+
     # visibility
     occluded_by_ = SIMULATION.isOccludedBy(person_name, object_name)["occluded_by"]
     occluded_by = [e["name"] for e in occluded_by_]
@@ -154,6 +165,10 @@ def check_reach_object_for_robot(object_name: str) -> str:
     :param object_name: The name of the object to check. The object must be available in the scene.
     :return: Result message.
     """
+    objects = SIMULATION.get_objects()["objects"]
+    if object_name not in objects:
+        return f"There is no object with the name {object_name} in the scene. Did you mean one of these: {objects}?"
+
     reachable = SIMULATION.isReachable("robot", object_name)
     if reachable:
         return f"You can get {object_name}."
@@ -168,6 +183,12 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     :param target_container_name: The name of the container to pour into.
     :return: Result message.
     """
+    objects = SIMULATION.get_objects()["objects"]
+    if source_container_name not in objects:
+        return f"There is no object with the name {source_container_name} in the scene. Did you mean one of these: {objects}?"
+    if target_container_name not in objects:
+        return f"There is no object with the name {target_container_name} in the scene. Did you mean one of these: {objects}?"
+
     res = SIMULATION.plan_fb(
         (
             f"get {source_container_name} duration 8;"
@@ -189,6 +210,10 @@ def speak(person_name: str, text: str) -> str:
     :param text: The text to speak.
     :return: Result message.
     """
+    agents = SIMULATION.get_agents()["agents"]
+    if person_name not in agents:
+        return f"There is no agent with the name {person_name} in the scene. Did you mean one of these: {agents}?"
+
     SIMULATION.execute(f"speak {text}")
     return f"You said to {person_name}: {text}"
 
@@ -201,6 +226,13 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to hand over the object to. The person must be available in the scene.
     :return: Result message.
     """
+    objects = SIMULATION.get_objects()["objects"]
+    if object_name not in objects:
+        return f"There is no object with the name {object_name} in the scene. Did you mean one of these: {objects}?"
+    agents = SIMULATION.get_agents()["agents"]
+    if person_name not in agents:
+        return f"There is no agent with the name {person_name} in the scene. Did you mean one of these: {agents}?"
+
     res = SIMULATION.plan_fb(
         (
             f"get {object_name} duration 8;"
@@ -233,11 +265,18 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to move the object to. The person must be available in the scene.
     :return: Result message.
     """
+    objects = SIMULATION.get_objects()["objects"]
+    if object_name not in objects:
+        return f"There is no object with the name {object_name} in the scene. Did you mean one of these: {objects}?"
+    agents = SIMULATION.get_agents()["agents"]
+    if person_name not in agents:
+        return f"There is no agent with the name {person_name} in the scene. Did you mean one of these: {agents}?"
+
     res = SIMULATION.plan_fb(
         (
             f"get {object_name};"
             f"put {object_name} near {person_name};"
-            "pose default, default_up,default_high"
+            "pose default,default_up,default_high"
         ),
     )
     if res.startswith("SUCCESS"):
@@ -249,7 +288,7 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
                 f"put {object_name};"
                 f"get {object_name};"
                 f"put {object_name} near {person_name};"
-                "pose default, default_up,default_high"
+                "pose default,default_up,default_high"
             ),
         )
     if res.startswith("SUCCESS"):
@@ -257,14 +296,24 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
     return f"You were not able to move {object_name} to {person_name}."
 
 
-def move_object_away_from_person(object_name: str, person_name: str) -> str:
+def move_object_away_from_person(object_name: str, away_from: str) -> str:
     """
     You get an object and move it away from a person.
 
     :param object_name: The name of the object to move. The object must be available in the scene.
-    :param person_name: The name of the person to move the object to. The person must be available in the scene.
+    :param away_from: The name of the person or object to move the object away from. It must be available in the scene.
     :return: Result message.
     """
+    objects = SIMULATION.get_objects()["objects"]
+    if object_name not in objects:
+        return f"There is no object with the name {object_name} in the scene. Did you mean one of these: {objects}?"
+    agents = SIMULATION.get_agents()["agents"]
+    if away_from not in agents and away_from not in objects:
+        return (
+            f"There is no agent or object with the name {away_from} in the scene. "
+            f"Did you mean one of these: {agents} or {objects}?"
+        )
+
     holdingHand = SIMULATION.is_held_by(
         (
             f"{object_name}"
@@ -294,6 +343,14 @@ def point_at_object_or_agent(name: str) -> str:
     :param name: The name of the object or person you want to point at.
     :return: Result message.
     """
+    objects = SIMULATION.get_objects()["objects"]
+    agents = SIMULATION.get_agents()["agents"]
+    if name not in agents and name not in objects:
+        return (
+            f"There is no agent or object with the name {name} in the scene. "
+            f"Did you mean one of these: {agents} or {objects}?"
+        )
+
     res = SIMULATION.plan_fb(
         (
             f"point {name};"
