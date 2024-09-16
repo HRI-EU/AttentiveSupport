@@ -167,7 +167,7 @@ def pick_and_place(object_name: str, place_name: str) -> str:
     return f"You couldn't place the {object_name} on the {place_name}: {res}."
 
 
-def point_at_object(name: str) -> str:
+def point_at_object_or_agent(name: str) -> str:
     """
     Point at an object or a person. 
 
