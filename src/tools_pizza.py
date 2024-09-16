@@ -32,7 +32,7 @@
 
 # agent.plan_with_functions("What is your character?")
 
-# agent.plan_with_functions("Recall your character. Prepare a pizza quattro stagioni. The dough is already placed on the plate. First, tell us which ingredient you add (as a bullet point list). Then, start by pouring the sauce on the pizza dough, then put all the other ingredients on the pizza dough (not on the plate). Do not put a bottle on the dough. Do not get the bowls, but the ingredients.")
+# agent.plan_with_functions("Recall your character. Prepare a pizza quattro stagioni. The dough is already placed on the plate. First, tell us which ingredient you add (as a bullet point list). Then, start by pouring the sauce on the pizza dough, then put all the other ingredients on the pizza dough (not on the plate). Do not put a bottle on the dough. Do not get the bowls, but the ingredients. If you have tried something thta didn't work for more than 3 times, give up and continue with a different strategy.")
 
 # agent.plan_with_functions("Recall your character. Please look around for ingredients for a pizza. Based on what you see, suggest a pizza you will prepare. Before you start, tell us which pizza you selected, and why. The dough is already placed on the plate. First, tell us which ingredient you add (as a bullet point list). Then, start by pouring the sauce on the pizza dough, then put all the other ingredients on the pizza dough (not on the plate). Do not put a bottle on the dough. Do not get the bowls, but the ingredients.")
 
@@ -124,30 +124,30 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     :param target_container_name: The name of the container to pour into.
     :return: Result message.
     """
+    holdingHand = SIMULATION.is_held_by(source_container_name)
     support = SIMULATION.get_parent_entity(source_container_name)
     support_frame = SIMULATION.get_closest_parent_affordance(source_container_name, "Supportable")
-    res = SIMULATION.plan_fb(
-        (
-            f"get {source_container_name};"
-            f"pour {source_container_name} {target_container_name};"
-            f"put {source_container_name} {support} frame {support_frame};"
-            "pose default,default_up,default_high"
-        ),
-    )
+    getCommand = ""
+    actionCommand = ""
+    if not holdingHand:
+        getCommand = f"get {source_container_name};"
+
+    actionCommand = (getCommand +
+                     f"pour {source_container_name} {target_container_name};"
+                     f"put {source_container_name} {support} frame {support_frame};"
+                     f"pose default,default_up,default_high")
+    res = SIMULATION.plan_fb(actionCommand)
     if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
     else:
-        res = SIMULATION.plan_fb(
-            (
-            f"move {source_container_name} above {target_container_name};"
-            f"pour {source_container_name} {target_container_name};"
-            f"put {source_container_name};"
-            "pose default,default_up,default_high"
-            ),
-        )
+        actionCommand = (getCommand +
+                         f"move {source_container_name} above {target_container_name};"
+                         f"pour {source_container_name} {target_container_name};"
+                         f"put {source_container_name};"
+                         f"pose default,default_up,default_high")
+        res = SIMULATION.plan_fb(actionCommand)
     if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
-
     return f"You were not able to pour {source_container_name} into {target_container_name}: {res}"
 
 
@@ -164,7 +164,7 @@ def speak(text: str) -> str:
 
 def pick_and_place(object_name: str, place_name: str) -> str:
     """
-    Pick up an object and put it to a place.
+    Pick up an object and put it to a place. This function should be preferred over calling get and put separately.
 
     :param object_name: The name of the object to pick and place. 
     :param place_name: The name of the place to put the object on. 
