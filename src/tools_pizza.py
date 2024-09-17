@@ -383,21 +383,28 @@ def weigh_object(object_name: str) -> str:
     return f"You couldn't weigh the {object_name}: {res}."
 
 
-def put_down_object(object_name: str, put_location: str) -> str:
+def put_down_object(object_name: str, put_location: str, near_location: str="", slow_speed: str="fast") -> str:
     """
     Put an object on the put location. The object must be grasped before putting it down. After 
     putting it down, the object is no longer held in your hand, but standing on the put_location.
 
     :param object_name: The name of the object to move away. The object must be available in the scene.
     :param put_location: The name of the object or support surface you put the object on. 
+    :param near_location: If near_location is not empty, then put the object_name as near as possible to the near_location. For instance when putting an object on the table near the center, the near_location is center, and the put_location is table. 
+    :param slow_speed: Move slow if str is slow, for instance when is it necessary to be careful, or you are being told to move slow or careful. 
     :return: Result message.
     """
-    res = SIMULATION.plan_fb(
-        (
-            f"put {object_name} {put_location};"
-            "pose default,default_up,default_high"
-        ),
-    )
+    durationScaling = SIMULATION.getDurationScaling()
+    if slow_speed=="slow":
+        SIMULATION.setDurationScaling(5.0)    
+    actionCommand = (f"put {object_name} {put_location}")
+    if (near_location):
+        actionCommand += f" near {near_location}"
+    actionCommand += ";pose default,default_up,default_high"
+    print(actionCommand)
+    res = SIMULATION.plan_fb(actionCommand)
+    if slow_speed=="slow":
+        SIMULATION.setDurationScaling(durationScaling)
     if res.startswith("SUCCESS"):
         return f"You put the {object_name} on the the {put_location}."
     return f"You couldn't put the {object_name} on the {put_location}: {res}."
