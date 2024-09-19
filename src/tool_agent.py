@@ -151,7 +151,7 @@ class ToolAgent:
         self.messages.append(response.choices[0].message)
 
         # run with function calls as long as necessary
-        while response.choices[0].message.tool_calls:
+        while response.choices[0].message.tool_calls and not SIM.hasBeenStopped:
             tool_calls = response.choices[0].message.tool_calls
             gaze_ = [tc for tc in tool_calls if tc.function.name == "gaze"]
             speech_ = [tc for tc in tool_calls if tc.function.name == "speak"]
@@ -192,7 +192,11 @@ class ToolAgent:
         if self.amnesic:
             self.reset()
 
-        print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
+        if not SIM.hasBeenStopped:
+            print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
+        else:
+            SIM.hasBeenStopped = False;
+            print("🤖💭 OK, I WAS STOPPED")
 
     def execute_voice_command_continuously(
         self, push_key: Optional[str] = None, samplerate: int = 44100
