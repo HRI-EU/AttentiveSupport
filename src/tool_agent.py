@@ -164,7 +164,7 @@ class ToolAgent:
                     continue
                 for tc in tcs:
                     function_call = tc.function
-                    # invoke functions
+                    # invoke function
                     func = function_call.name
                     fn_args = json.loads(function_call.arguments)
                     print(
@@ -175,28 +175,20 @@ class ToolAgent:
                         + ")"
                     )
                     if SIM.hasBeenStopped:
-                        self.messages.append(
-                            {
-                                "role": "tool",
-                                "name": func,
-                                "content": "This task has not been completed due to user interruption.",
-                                "tool_call_id": tc.id,
-                            }
-                        )
+                        fn_res = "This task has not been completed due to user interruption."
                     else:
                         fcn = self.function_resolver[func]
                         fn_res = fcn(**fn_args)
-                        print("🔧 Function result is: " + fn_res)
-
-                        # query with function result
-                        self.messages.append(
-                            {
-                                "role": "tool",
-                                "name": func,
-                                "content": fn_res,
-                                "tool_call_id": tc.id,
-                            }
-                        )
+                    # track function result
+                    print("🔧 Function result is: " + fn_res)
+                    self.messages.append(
+                        {
+                            "role": "tool",
+                            "name": func,
+                            "content": fn_res,
+                            "tool_call_id": tc.id,
+                        }
+                    )
             if SIM.hasBeenStopped:
                 break
             else:
