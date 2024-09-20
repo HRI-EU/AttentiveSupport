@@ -214,7 +214,8 @@ class ToolAgent:
     def reset_after_interrupt(self) -> None:
         grasped_objects = SIM.get_objects_held_by(self.name)
         for object_name in grasped_objects["objects"]:
-            SIM.plan_fb(f"put {object_name}")
+            res = SIM.plan_fb(f"put {object_name}")
+            print(f"⚠️ Putting down {object_name}: {res}")
         SIM.plan_fb("pose default,default_up,default_high")
 
     def execute_voice_command_continuously(
