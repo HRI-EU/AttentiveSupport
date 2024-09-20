@@ -92,16 +92,16 @@ def get_objects() -> str:
     return "Following objects were observed: " + ", ".join(result["objects"]) + "."
 
 
-def get_persons() -> str:
+def get_agents() -> str:
     """
-    Get all persons that are available in the scene. You can see all these persons.
+    Get all agents that are available in the scene, including yourself. You can see all these agents.
 
     :return: Result message.
     """
     result = SIMULATION.get_agents()
     if not result:
-        return "No persons were observed."
-    return "Following persons were observed: " + ", ".join(result["agents"]) + "."
+        return "No agents were observed."
+    return "The following agents, including yourself, were observed: " + ", ".join(result["agents"]) + "."
 
 
 def is_person_busy_or_idle(person_name: str) -> str:
@@ -211,7 +211,7 @@ def speak(person_name: str, text: str) -> str:
     :return: Result message.
     """
     agents = SIMULATION.get_agents()["agents"]
-    if person_name not in agents:
+    if person_name not in agents and person_name != "All":
         return f"There is no agent with the name {person_name} in the scene. Did you mean one of these: {agents}?"
 
     SIMULATION.execute(f"speak {text}")

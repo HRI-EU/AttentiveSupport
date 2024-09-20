@@ -100,16 +100,16 @@ def get_objects() -> str:
     return "Following objects were observed: " + ", ".join(result["objects"]) + "."
 
 
-def get_persons() -> str:
+def get_agents() -> str:
     """
-    Get all persons that are available in the scene. You can see all these persons.
+    Get all agents that are available in the scene, including yourself. You can see all these agents.
 
     :return: Result message.
     """
     result = SIMULATION.get_agents()
     if not result:
-        return "No persons were observed."
-    return "Following persons were observed: " + ", ".join(result["agents"]) + "."
+        return "No agents were observed."
+    return "The following agents, including yourself, were observed: " + ", ".join(result["agents"]) + "."
 
 
 def comfort_pose() -> str:
