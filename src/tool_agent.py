@@ -151,7 +151,7 @@ class ToolAgent:
         self.messages.append(response.choices[0].message)
 
         # run with function calls as long as necessary
-        while response.choices[0].message.tool_calls and not SIM.hasBeenStopped:
+        while response.choices[0].message.tool_calls:
             tool_calls = response.choices[0].message.tool_calls
             gaze_ = [tc for tc in tool_calls if tc.function.name == "gaze"]
             speech_ = [tc for tc in tool_calls if tc.function.name == "speak"]
@@ -196,7 +196,9 @@ class ToolAgent:
                                 "tool_call_id": tc.id,
                             }
                         )
-            if not SIM.hasBeenStopped:
+            if SIM.hasBeenStopped:
+                break
+            else:
                 response = self._query_llm(self.messages)
                 self.messages.append(response.choices[0].message)
 
@@ -204,6 +206,12 @@ class ToolAgent:
             SIM.hasBeenStopped = False
             print("🤖💭 I WAS STOPPED: Getting back to my default pose.")
             self.reset_after_interrupt()
+            self.messages.append(
+                {
+                    "role": "system",
+                    "content": f"You were stopped by the user and are now back in your default pose.",
+                },
+            )
         else:
             print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
 
