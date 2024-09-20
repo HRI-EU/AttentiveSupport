@@ -146,8 +146,6 @@ class ToolAgent:
         return response
 
     def plan_with_functions(self, text_input: str) -> None:
-        print(f"{SIM.hasBeenStopped=}")
-
         self.messages.append({"role": "user", "content": text_input})
         response = self._query_llm(self.messages)
         self.messages.append(response.choices[0].message)
@@ -204,13 +202,19 @@ class ToolAgent:
 
         if SIM.hasBeenStopped:
             SIM.hasBeenStopped = False
-            # add to TCs
-            print("🤖💭 I WAS STOPPED")
+            print("🤖💭 I WAS STOPPED: Getting back to my default pose.")
+            self.reset_after_interrupt()
         else:
             print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
 
         if self.amnesic:
             self.reset()
+
+    def reset_after_interrupt(self) -> None:
+        grasped_objects = SIM.get_objects_held_by(self.name)
+        for object_name in grasped_objects["objects"]:
+            SIM.plan_fb(f"put {object_name}")
+        SIM.plan_fb("pose default,default_up,default_high")
 
     def execute_voice_command_continuously(
         self, push_key: Optional[str] = None, samplerate: int = 44100
