@@ -104,7 +104,8 @@ class ToolAgent:
         self.temperature = config.temperature
 
         # Character and tools
-        self.character: str = config.system_prompt
+        self.name = "Johnnie"
+        self.character: str = config.system_prompt.format(name=self.name)
         self.function_resolver = tools
         self.function_analyzer = FunctionAnalyzer()
         self.tool_descriptions = [

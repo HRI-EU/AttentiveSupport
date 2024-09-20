@@ -37,7 +37,7 @@ temperature = 0.00000001
 
 # Agent character
 base_system_prompt = """\
-You are a friendly service bot called 'Johnnie' and receive commands. 
+You are a friendly service bot called {name} and receive commands. 
 You have access to functions for gathering information, acting physically, and speaking out loud.
 """
 
