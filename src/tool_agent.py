@@ -146,6 +146,8 @@ class ToolAgent:
         return response
 
     def plan_with_functions(self, text_input: str) -> None:
+        print(f"{SIM.hasBeenStopped=}")
+
         self.messages.append({"role": "user", "content": text_input})
         response = self._query_llm(self.messages)
         self.messages.append(response.choices[0].message)
@@ -173,30 +175,42 @@ class ToolAgent:
                         + str(fn_args)
                         + ")"
                     )
-                    fcn = self.function_resolver[func]
-                    fn_res = fcn(**fn_args)
-                    print("🔧 Function result is: " + fn_res)
+                    if SIM.hasBeenStopped:
+                        self.messages.append(
+                            {
+                                "role": "tool",
+                                "name": func,
+                                "content": "This task has not been completed due to user interruption.",
+                                "tool_call_id": tc.id,
+                            }
+                        )
+                    else:
+                        fcn = self.function_resolver[func]
+                        fn_res = fcn(**fn_args)
+                        print("🔧 Function result is: " + fn_res)
 
-                    # query with function result
-                    self.messages.append(
-                        {
-                            "role": "tool",
-                            "name": func,
-                            "content": fn_res,
-                            "tool_call_id": tc.id,
-                        }
-                    )
-            response = self._query_llm(self.messages)
-            self.messages.append(response.choices[0].message)
+                        # query with function result
+                        self.messages.append(
+                            {
+                                "role": "tool",
+                                "name": func,
+                                "content": fn_res,
+                                "tool_call_id": tc.id,
+                            }
+                        )
+            if not SIM.hasBeenStopped:
+                response = self._query_llm(self.messages)
+                self.messages.append(response.choices[0].message)
+
+        if SIM.hasBeenStopped:
+            SIM.hasBeenStopped = False
+            # add to TCs
+            print("🤖💭 I WAS STOPPED")
+        else:
+            print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
 
         if self.amnesic:
             self.reset()
-
-        if not SIM.hasBeenStopped:
-            print("🤖💭 FINAL RESPONSE: " + response.choices[0].message.content)
-        else:
-            SIM.hasBeenStopped = False;
-            print("🤖💭 OK, I WAS STOPPED")
 
     def execute_voice_command_continuously(
         self, push_key: Optional[str] = None, samplerate: int = 44100
