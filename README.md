@@ -101,6 +101,7 @@ export OPENAI_API_KEY=replace_me
 * Note: The `gpt_config.py` file can either be changed directly, or the filename of a custom config file can be passed to the agent when running in interactive mode: `python -i src/tool_agent.py --config=custom_config`
 
 ### Additional features
+* Stop the robot mid-action: activate the simulation window, then press `Shift + S`
 * Setting an agent as busy: `set_busy("Daniel", "iphone5")`
 * Enable text to speech: `enable_tts()`
 * Speech input; start talking after executing the command and press any key (or a specified `push_key`) to stop the speech input: `agent.execute_voice_command_once()`
