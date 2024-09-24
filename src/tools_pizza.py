@@ -117,29 +117,38 @@ def check_reach_object_for_robot(object_name: str) -> str:
 
 def pour_into(source_container_name: str, target_container_name: str) -> str:
     """
-    Pour a source container into a target container. You must grasp the source container before 
+    Pour a source container into a target container. You do not have to grasp the source container before 
     pouring it. You hold it in your hand after finishing.
 
     :param source_container_name: The name of the container to pour from.
     :param target_container_name: The name of the container to pour into.
     :return: Result message.
     """
+    # We get the object if it is not already held in the hand.
     holdingHand = SIMULATION.is_held_by(source_container_name)
-    support = SIMULATION.get_parent_entity(source_container_name)
-    support_frame = SIMULATION.get_closest_parent_affordance(source_container_name, "Supportable")
     getCommand = ""
-    actionCommand = ""
     if not holdingHand:
         getCommand = f"get {source_container_name};"
 
-    actionCommand = (getCommand +
-                     f"pour {source_container_name} {target_container_name};"
-                     f"put {source_container_name} {support} frame {support_frame};"
-                     f"pose default,default_up,default_high")
+    # The strings support and support_frame will be remembered so that the object will
+    # be put back to the same place where it has been picked up. In cases when the object is
+    # already held in the hand, they may be empty. Then, the object is put on the best
+    # support location according to the action cost.
+    support = SIMULATION.get_parent_entity(source_container_name)
+    support_frame = SIMULATION.get_closest_parent_affordance(source_container_name, "Supportable")
+    pourCommand = f"pour {source_container_name} {target_container_name};"
+    putCommand = f"put {source_container_name} {support}"
+    if support_frame:
+        putCommand += f" frame {support_frame}"
+    putCommand += ';'
+
+    actionCommand = (getCommand + pourCommand + putCommand + f"pose default,default_up,default_high")
     res = SIMULATION.plan_fb(actionCommand)
     if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
     else:
+        # Didn't work out: We move the object above the target container, pour, and just put it
+        # somewhere. That's not so nice, but pretty safe and works in most cases.
         actionCommand = (getCommand +
                          f"move {source_container_name} above {target_container_name};"
                          f"pour {source_container_name} {target_container_name};"
@@ -320,7 +329,7 @@ def shake_object(object_name: str) -> str:
 
 def grasp_object(object_name: str, slow_speed: str="fast") -> str:
     """
-    Grasp an object. After grasping, you hold the object in your hand. 
+    This is an atomic function. Grasp an object. After grasping, you hold the object in your hand. 
 
     :param object_name: The name of the object to grasp. 
     :param slow_speed: Move slow if str is slow, for instance when is it necessary to be careful. 
@@ -351,7 +360,7 @@ def grasp_object(object_name: str, slow_speed: str="fast") -> str:
 
 def drop_object(object_name: str) -> str:
     """
-    Drop an object. After dropping, you do not hold the object in your hand. 
+    This is an atomic function. Drop an object. After dropping, you do not hold the object in your hand. 
 
     :param object_name: The name of the object to drop. 
     :return: Result message.
@@ -385,7 +394,7 @@ def weigh_object(object_name: str) -> str:
 
 def put_down_object(object_name: str, put_location: str, near_location: str="", slow_speed: str="fast") -> str:
     """
-    Put an object on the put location. The object must be grasped before putting it down. After 
+    This is an atomic function. Put an object on the put location. The object must be grasped before putting it down. After 
     putting it down, the object is no longer held in your hand, but standing on the put_location.
 
     :param object_name: The name of the object to move away. The object must be available in the scene.

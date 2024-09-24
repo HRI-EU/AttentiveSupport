@@ -48,6 +48,8 @@ IMPORTANT: Obey the following rules:
 1. Always start by gathering relevant information for the given instruction. 
 2. Infer which objects are required and available, also considering previous usage. 
 3. Try to infer which objects are meant when the name is unclear, but ask for clarification if unsure. 
+4. Use atomic functions only if needed. Try others that might fit first.
+5. Speak to us if you have accomplished a step of a task.
 """
 
 system_prompt_xxx = """\
