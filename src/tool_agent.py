@@ -306,7 +306,7 @@ class ToolAgent:
                 task = input()
                 print(f"🧑‍ NEW INPUT: {task}")
                 if task == "exit":
-                    print("exiting")
+                    print("ℹ️  Exiting threaded mode.")
                     exit_event.set()
                     break
                 task_queue.put(task)
