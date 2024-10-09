@@ -37,6 +37,9 @@ import logging
 import os.path
 import platform
 import sys
+import threading
+import time
+import queue
 
 if platform.system() == "Linux":
     from getch import getch
@@ -220,7 +223,7 @@ class ToolAgent:
         grasped_objects = SIM.get_objects_held_by(self.name)
         for object_name in grasped_objects["objects"]:
             res = SIM.plan_fb(f"put {object_name}")
-            print(f"ℹ️ Putting down {object_name}: {res}")
+            print(f"ℹ️  Putting down {object_name}: {res}")
         SIM.plan_fb("pose default,default_up,default_high")
 
     def execute_voice_command_continuously(
@@ -281,6 +284,38 @@ class ToolAgent:
             {"role": "system", "content": self.character},
         ]
         print(f"📝 Message history reset.")
+
+    def run_threaded(self) -> None:
+        print(f"ℹ️  Running in threaded mode, i.e., you can provide new inputs at any time. Type 'exit' to exit.")
+        task_queue = queue.Queue()
+
+        def _process_input():
+            while True:
+                try:
+                    next_task = task_queue.get(timeout=1)
+                    if next_task is not None:
+                        print(f"📋 NEXT INPUT FROM QUEUE: {next_task}")
+                        self.plan_with_functions(next_task)
+                        task_queue.task_done()
+                except queue.Empty:
+                    continue
+
+        def _take_input():
+            while True:
+                task = input()
+                if task == "exit":
+                    break
+                task_queue.put(task)
+                print(f"🧑‍ NEW INPUT: {task}")
+
+        processing_thread = threading.Thread(target=_process_input, daemon=True)
+        processing_thread.start()
+        input_thread = threading.Thread(target=_take_input, daemon=True)
+        input_thread.start()
+        while task_queue.empty():
+            time.sleep(1)
+        input_thread.join()
+        task_queue.join()
 
 
 def set_busy(agent: str, thing: str):
