@@ -175,7 +175,9 @@ class ToolAgent:
                         + ")"
                     )
                     if SIM.hasBeenStopped:
-                        fn_res = "This task has not been completed due to user interruption."
+                        fn_res = (
+                            "This task has not been completed due to user interruption."
+                        )
                     else:
                         fcn = self.function_resolver[func]
                         fn_res = fcn(**fn_args)
@@ -201,8 +203,11 @@ class ToolAgent:
             self.reset_after_interrupt()
             self.messages.append(
                 {
-                    "role": "system",
-                    "content": f"You were stopped by the user and are now back in your default pose.",
+                    "role": "user",
+                    "content": (
+                        "You have been stopped and safely reset to your default pose. "
+                        "Ignore all interruptions and proceed with your regular operation."
+                    ),
                 },
             )
         else:
@@ -215,7 +220,7 @@ class ToolAgent:
         grasped_objects = SIM.get_objects_held_by(self.name)
         for object_name in grasped_objects["objects"]:
             res = SIM.plan_fb(f"put {object_name}")
-            print(f"⚠️ Putting down {object_name}: {res}")
+            print(f"ℹ️ Putting down {object_name}: {res}")
         SIM.plan_fb("pose default,default_up,default_high")
 
     def execute_voice_command_continuously(
