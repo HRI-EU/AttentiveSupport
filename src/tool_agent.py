@@ -288,9 +288,10 @@ class ToolAgent:
     def run_threaded(self) -> None:
         print(f"ℹ️  Running in threaded mode, i.e., you can provide new inputs at any time. Type 'exit' to exit.")
         task_queue = queue.Queue()
+        exit_event = threading.Event()
 
         def _process_input():
-            while True:
+            while not exit_event.is_set():
                 try:
                     next_task = task_queue.get(timeout=1)
                     if next_task is not None:
@@ -301,21 +302,24 @@ class ToolAgent:
                     continue
 
         def _take_input():
-            while True:
+            while not exit_event.is_set():
                 task = input()
+                print(f"🧑‍ NEW INPUT: {task}")
                 if task == "exit":
+                    print("exiting")
+                    exit_event.set()
                     break
                 task_queue.put(task)
-                print(f"🧑‍ NEW INPUT: {task}")
 
         processing_thread = threading.Thread(target=_process_input, daemon=True)
         processing_thread.start()
         input_thread = threading.Thread(target=_take_input, daemon=True)
         input_thread.start()
-        while task_queue.empty():
+        while task_queue.empty() and not exit_event.is_set():
             time.sleep(1)
         input_thread.join()
         task_queue.join()
+        processing_thread.join()
 
 
 def set_busy(agent: str, thing: str):
