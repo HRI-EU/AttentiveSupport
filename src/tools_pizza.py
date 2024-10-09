@@ -104,7 +104,7 @@ def inspect_scene() -> str:
 
 def check_reach_object_for_robot(object_name: str) -> str:
     """
-    Check if you (the_robot) can get the object.
+    Check if you (the robot) can get the object.
 
     :param object_name: The name of the object to check. The object must be available in the scene.
     :return: Result message.
