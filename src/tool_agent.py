@@ -288,10 +288,19 @@ class ToolAgent:
         print(f"📝 Message history reset.")
 
     def run_threaded(self) -> None:
+        """
+        Uses separate threads for simulator calls and user inputs, which are stored in a queue.
+        Keywords are available for pausing, resuming, and stopping actions.
+        Stopping an action clears the input queue.
+        Providing a new input when the system is stopped assumes that a stop
+        was intended and continues with the new input.
+        """
         print(
-            f"ℹ️  Running in threaded mode, i.e., you can provide new inputs at any time. Type 'exit' to exit."
+            "ℹ️  Running in threaded mode, i.e., you can provide new inputs at any time. "
+            "You can use the following keywords: 'exit', 'pause', 'resume', and 'stop'."
         )
         task_queue = queue.Queue()
+        pause_event = threading.Event()
         exit_event = threading.Event()
 
         def _process_input():
@@ -299,7 +308,7 @@ class ToolAgent:
                 try:
                     next_task = task_queue.get(timeout=1)
                     if next_task is not None:
-                        print(f"📋 NEXT INPUT FROM QUEUE: {next_task}")
+                        print(f"📋 Processing next input from queue: {next_task}")
                         self.plan_with_functions(next_task)
                         task_queue.task_done()
                 except queue.Empty:
@@ -308,11 +317,34 @@ class ToolAgent:
         def _take_input():
             while not exit_event.is_set():
                 task = input()
-                print(f"🧑‍ NEW INPUT: {task}")
+                print(f"🧑‍ Registered new input: {task}")
                 if task == "exit":
                     print("ℹ️  Exiting threaded mode.")
                     exit_event.set()
                     break
+                if task == "stop":
+                    print("⏹️ Stopping and clearing input queue.")
+                    if pause_event.is_set():
+                        SIM.resumeTrajectory()
+                    SIM.clearTrajectory()
+                    task_queue.queue.clear()
+                    pause_event.clear()
+                    continue
+                if task == "pause":
+                    print("⏸️ Pausing. Continue with 'resume' or 'stop'.")
+                    SIM.pauseTrajectory()
+                    pause_event.set()
+                    continue
+                if task == "resume":
+                    print("▶️ Resuming.")
+                    SIM.resumeTrajectory()
+                    pause_event.clear()
+                    continue
+                if pause_event.is_set():
+                    SIM.resumeTrajectory()
+                    SIM.clearTrajectory()
+                    task_queue.queue.clear()
+                    pause_event.clear()
                 task_queue.put(task)
 
         processing_thread = threading.Thread(target=_process_input, daemon=True)
