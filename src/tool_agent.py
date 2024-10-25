@@ -93,7 +93,9 @@ class ToolAgent:
         config = importlib.import_module(config_module)
         tool_module = importlib.import_module(config.tool_module)
         tools = {
-            n: f for n, f in inspect.getmembers(tool_module) if inspect.isfunction(f)
+            n: f
+            for n, f in inspect.getmembers(tool_module)
+            if inspect.isfunction(f) and not f.__name__.startswith("_")
         }
         global SIM
         SIM = tool_module.SIMULATION
@@ -286,7 +288,9 @@ class ToolAgent:
         print(f"📝 Message history reset.")
 
     def run_threaded(self) -> None:
-        print(f"ℹ️  Running in threaded mode, i.e., you can provide new inputs at any time. Type 'exit' to exit.")
+        print(
+            f"ℹ️  Running in threaded mode, i.e., you can provide new inputs at any time. Type 'exit' to exit."
+        )
         task_queue = queue.Queue()
         exit_event = threading.Event()
 
