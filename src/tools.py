@@ -31,6 +31,8 @@
 #
 import platform
 import sys
+import time
+
 import yaml
 
 from pathlib import Path
@@ -76,8 +78,12 @@ SIMULATION.init(True)
 SIMULATION.addTTS("native")
 
 
-# Tools
-ARG1 = True
+def _poll_sim(period: float = .1) -> str:
+    while True:
+        status = SIMULATION.query_fb_nonblock()
+        time.sleep(period)
+        if status:
+            return status
 
 
 def get_objects() -> str:
@@ -189,7 +195,7 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     if target_container_name not in objects:
         return f"There is no object with the name {target_container_name} in the scene. Did you mean one of these: {objects}?"
 
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {source_container_name} duration 8;"
             f"pour {source_container_name} {target_container_name};"
@@ -197,6 +203,7 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
             "pose default duration 4"
         ),
     )
+    res = _poll_sim()
     if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
     return f"You were not able to pour {source_container_name} into {target_container_name}."
@@ -233,17 +240,18 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
     if person_name not in agents:
         return f"There is no agent with the name {person_name} in the scene. Did you mean one of these: {agents}?"
 
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {object_name} duration 8;"
             f"pass {object_name} {person_name};"
             "pose default duration 4"
         ),
     )
+    res = _poll_sim()
     if res.startswith("SUCCESS"):
         return f"Passed {object_name} to {person_name}"
     else:
-        res = SIMULATION.plan_fb(
+        SIMULATION.plan_fb_nonblock(
             (
                 f"get {object_name} duration 8;"
                 f"put {object_name};"
@@ -252,6 +260,7 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
                 "pose default duration 4"
             ),
         )
+        res = _poll_sim()
     if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     return f"You were not able to hand {object_name} over to {person_name}."
@@ -272,17 +281,18 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
     if person_name not in agents:
         return f"There is no agent with the name {person_name} in the scene. Did you mean one of these: {agents}?"
 
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {object_name};"
             f"put {object_name} near {person_name};"
             "pose default,default_up,default_high"
         ),
     )
+    res = _poll_sim()
     if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     else:
-        res = SIMULATION.plan_fb(
+        SIMULATION.plan_fb_nonblock(
             (
                 f"get {object_name};"
                 f"put {object_name};"
@@ -291,6 +301,7 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
                 "pose default,default_up,default_high"
             ),
         )
+        res = _poll_sim()
     if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     return f"You were not able to move {object_name} to {person_name}."
@@ -324,13 +335,14 @@ def move_object_away_from_person(object_name: str, away_from: str) -> str:
     if not holdingHand:
         getCommand = f"get {object_name};"
     
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             getCommand +
             f"put {object_name} far {away_from};"
             "pose default,default_up,default_high"
         ),
     )
+    res = _poll_sim()
     if res.startswith("SUCCESS"):
         return f"You moved the {object_name} away from the {away_from}."
     return f"You couldn't move the {object_name} away from the {away_from}: {res}."
@@ -351,12 +363,13 @@ def point_at_object_or_agent(name: str) -> str:
             f"Did you mean one of these: {agents} or {objects}?"
         )
 
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"point {name};"
             "pose default,default_up,default_high"
         ),
     )
+    res = _poll_sim()
     if res.startswith("SUCCESS"):
         return f"You pointed at the {name}."
     return f"You couldn't point at the {name}: {res}."
