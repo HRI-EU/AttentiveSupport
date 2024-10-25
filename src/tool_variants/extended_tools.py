@@ -31,6 +31,8 @@
 #
 import platform
 import sys
+import time
+
 import yaml
 
 from pathlib import Path
@@ -74,8 +76,12 @@ SIMULATION.init(True)
 SIMULATION.addTTS("native")
 
 
-# Tools
-ARG1 = True
+def _poll_sim(period: float = .1) -> str:
+    while True:
+        status = SIMULATION.query_fb_nonblock()
+        time.sleep(period)
+        if status:
+            return status
 
 
 def get_environment_description() -> str:
@@ -118,8 +124,9 @@ def comfort_pose() -> str:
 
     :return: success message
     """
-    success = SIMULATION.planActionSequence("pose default", ARG1)
-    if success:
+    SIMULATION.plan_fb_nonblock("pose default")
+    res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return "Successfully moved into comfort pose"
     return "Failed to move into comfort pose"
 
@@ -130,8 +137,9 @@ def gaze(object_name: str) -> str:
 
     :param object_name: The name of the object to look or gaze at
     """
-    success = SIMULATION.planActionSequence(f"gaze {object_name}", ARG1)
-    if success:
+    SIMULATION.plan_fb_nonblock(f"gaze {object_name}")
+    res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return f"I look at the {object_name}"
     return f"I could not look at the {object_name}"
 
@@ -213,8 +221,9 @@ def primitive_grasp(object_name: str) -> str:
     :param object_name: The name of the object to grasp. The object must be available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(f"get {object_name}", ARG1)
-    if success:
+    SIMULATION.plan_fb_nonblock(f"get {object_name}")
+    res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return f"You grasped {object_name}."
     return f"You were not able to grasp {object_name}."
 
@@ -227,16 +236,16 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     :param target_container_name: The name of the container to pour into.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {source_container_name} duration 8;",
             f"pour {source_container_name} {target_container_name};",
             f"put {source_container_name} table duration 7;",
             "pose default duration 4",
         ),
-        ARG1,
     )
-    if success:
+    res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
     return f"You were not able to pour {source_container_name} into {target_container_name}."
 
@@ -249,10 +258,11 @@ def primitive_put(object_name: str, place_name: str) -> str:
     :param place_name: The name of the place to put the object on. The place must be an object that is available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
-        f"put {object_name} {place_name}; pose default duration 4", ARG1
+    SIMULATION.plan_fb_nonblock(
+        f"put {object_name} {place_name}; pose default duration 4"
     )
-    if success:
+    res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return f"You put {object_name} on {place_name}."
     return f"You were unable to put {object_name} on {place_name}."
 
@@ -265,8 +275,9 @@ def primitive_drop(object_name: str, place_name: str) -> str:
     :param place_name: The name of the place to drop the object on. The place must be an object that is available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(f"drop {object_name} {place_name}", ARG1)
-    if success:
+    SIMULATION.plan_fb_nonblock(f"drop {object_name} {place_name}")
+    res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return f"You dropped {object_name} on {place_name}."
     return f"You were unable to drop {object_name} on {place_name}."
 
@@ -291,15 +302,15 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to hand over the object to. The person must be available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {object_name} duration 8;"
             f"pass {object_name} {person_name};"
             "pose default duration 4"
         ),
-        ARG1,
     )
-    if success:
+    res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return f"Passed {object_name} to {person_name}"
     return f"You were not able to hand {object_name} over to {person_name}."
 
@@ -312,15 +323,15 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to move the object to. The person must be available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {object_name} duration 8;"
             f"put {object_name} {person_name}_close duration 7;"
             "pose default duration 4"
         ),
-        ARG1,
     )
-    if success:
+    res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     return f"You were not able to move {object_name} to {person_name}."
 
@@ -333,18 +344,18 @@ def move_object_away_from_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to move the object to. The person must be available in the scene.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {object_name} duration 8;"
             f"put {object_name} far {person_name} duration 7;"
             "pose default duration 4"
         ),
-        ARG1,
     )
-    if success:
+    res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     else:
-        success = SIMULATION.planActionSequence(
+        SIMULATION.plan_fb_nonblock(
             (
                 f"get {object_name} duration 8;"
                 f"put {object_name};"
@@ -352,9 +363,9 @@ def move_object_away_from_person(object_name: str, person_name: str) -> str:
                 f"put {object_name} far {person_name} duration 7;"
                 "pose default duration 4"
             ),
-            ARG1,
         )
-    if success:
+        res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return f"You moved {object_name} away from {person_name}."
     return f"You were not able to move {object_name} away from {person_name}."
 
@@ -366,13 +377,13 @@ def point_at_object_or_agent(name: str) -> str:
     :param name: The name of the object or person you want to point at.
     :return: Result message.
     """
-    success = SIMULATION.planActionSequence(
+    SIMULATION.plan_fb_nonblock(
         (
             f"point {name};"
             "pose default duration 4"
         ),
-        ARG1,
     )
-    if success:
+    res = _poll_sim()
+    if res.startswith("SUCCESS"):
         return f"You pointed at {name}."
     return f"You were not able to point at {name}."
