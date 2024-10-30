@@ -95,7 +95,7 @@ class ToolAgent:
         tools = {
             n: f
             for n, f in inspect.getmembers(tool_module)
-            if inspect.isfunction(f) and not f.__name__.startswith("_")
+            if inspect.isfunction(f) and f.__module__ == tool_module.__name__
         }
         global SIM
         SIM = tool_module.SIMULATION

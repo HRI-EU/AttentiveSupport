@@ -29,61 +29,10 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-import platform
-import sys
-import time
-
-import yaml
-
-from pathlib import Path
+from simulator import create_simulator, poll_simulator
 
 
-# System setup
-
-with open(Path(__file__).parent.resolve() / "config.yaml", "r") as config:
-    config_data = yaml.safe_load(config)
-    SMILE_WS_PATH = Path(__file__).parents[1].resolve() / config_data["install"]
-    print(f"{SMILE_WS_PATH=}")
-
-CFG_ROOT_DIR = str(SMILE_WS_PATH / "config")
-CFG_DIR = str(SMILE_WS_PATH / "config/xml/AffAction/xml/examples")
-if platform.system() == "Linux":
-    sys.path.append(str(SMILE_WS_PATH / "lib"))
-elif platform.system() in ("WindowsLocal", "Windows"):
-    sys.path.append(str(SMILE_WS_PATH / "bin"))
-else:
-    sys.exit(platform.system() + " not supported")
-
-
-from pyAffaction import (
-    LlmSim,
-    addResourcePath,
-    setLogLevel,
-)
-
-
-addResourcePath(CFG_ROOT_DIR)
-addResourcePath(CFG_DIR)
-print(f"{CFG_DIR=}")
-setLogLevel(-1)
-
-SIMULATION = LlmSim()
-SIMULATION.noTextGui = True
-SIMULATION.unittest = False
-SIMULATION.speedUp = 3
-SIMULATION.noLimits = False
-SIMULATION.verbose = False
-SIMULATION.xmlFileName = "g_group_6.xml"
-SIMULATION.init(True)
-SIMULATION.addTTS("native")
-
-
-def _poll_sim(period: float = .1) -> str:
-    while True:
-        status = SIMULATION.query_fb_nonblock()
-        time.sleep(period)
-        if status:
-            return status
+SIMULATION = create_simulator(scene="g_group_6.xml")
 
 
 def get_objects() -> str:
@@ -203,7 +152,7 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
             "pose default duration 4"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
     return f"You were not able to pour {source_container_name} into {target_container_name}."
@@ -247,7 +196,7 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
             "pose default duration 4"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"Passed {object_name} to {person_name}"
     else:
@@ -260,7 +209,7 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
                 "pose default duration 4"
             ),
         )
-        res = _poll_sim()
+        res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     return f"You were not able to hand {object_name} over to {person_name}."
@@ -288,7 +237,7 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
             "pose default,default_up,default_high"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     else:
@@ -301,7 +250,7 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
                 "pose default,default_up,default_high"
             ),
         )
-        res = _poll_sim()
+        res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     return f"You were not able to move {object_name} to {person_name}."
@@ -342,7 +291,7 @@ def move_object_away_from_person(object_name: str, away_from: str) -> str:
             "pose default,default_up,default_high"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You moved the {object_name} away from the {away_from}."
     return f"You couldn't move the {object_name} away from the {away_from}: {res}."
@@ -369,7 +318,7 @@ def point_at_object_or_agent(name: str) -> str:
             "pose default,default_up,default_high"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You pointed at the {name}."
     return f"You couldn't point at the {name}: {res}."

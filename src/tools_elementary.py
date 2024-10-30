@@ -28,63 +28,11 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-import platform
-import sys
-import time
-
-import yaml
-
-from datetime import datetime
-from pathlib import Path
+#
+from simulator import create_simulator, poll_simulator
 
 
-# System setup
-
-with open(Path(__file__).parent.resolve() / "config.yaml", "r") as config:
-    config_data = yaml.safe_load(config)
-    SMILE_WS_PATH = Path(__file__).parents[1].resolve() / config_data["install"]
-    print(f"{SMILE_WS_PATH=}")
-
-CFG_ROOT_DIR = str(SMILE_WS_PATH / "config")
-CFG_DIR = str(SMILE_WS_PATH / "config/xml/AffAction/xml/examples")
-if platform.system() == "Linux":
-    sys.path.append(str(SMILE_WS_PATH / "lib"))
-elif platform.system() in ("WindowsLocal", "Windows"):
-    sys.path.append(str(SMILE_WS_PATH / "bin"))
-else:
-    sys.exit(platform.system() + " not supported")
-
-
-from pyAffaction import (
-    LlmSim,
-    addResourcePath,
-    setLogLevel,
-)
-
-
-addResourcePath(CFG_ROOT_DIR)
-addResourcePath(CFG_DIR)
-print(f"{CFG_DIR=}")
-setLogLevel(-1)
-
-SIMULATION = LlmSim()
-SIMULATION.noTextGui = True
-SIMULATION.unittest = False
-SIMULATION.speedUp = 3
-SIMULATION.noLimits = False
-SIMULATION.verbose = False
-SIMULATION.xmlFileName = "g_example_curiosity_cocktails.xml"
-SIMULATION.init(True)
-SIMULATION.addTTS("piper")
-
-
-def _poll_sim(period: float = .1) -> str:
-    while True:
-        status = SIMULATION.query_fb_nonblock()
-        time.sleep(period)
-        if status:
-            return status
+SIMULATION = create_simulator(scene="g_example_curiosity_cocktails.xml", tts="piper")
 
 
 def inspect_objects() -> str:
@@ -117,7 +65,7 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
             f"put {source_container_name} {support} frame {support_frame}"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
 
@@ -150,7 +98,7 @@ def pick_and_place(object_name: str, place_name: str) -> str:
             "pose default,default_up,default_high"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You placed the {object_name} on the {place_name}."
     else:
@@ -163,7 +111,7 @@ def pick_and_place(object_name: str, place_name: str) -> str:
                 "pose default,default_up,default_high"
             ),
         )
-        res = _poll_sim()
+        res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You placed the {object_name} on the {place_name}."
     return f"You couldn't place the {object_name} on the {place_name}: {res}."
@@ -182,7 +130,7 @@ def point_at_object_or_agent(name: str) -> str:
             "pose default,default_up,default_high"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You pointed at the {name}."
     return f"You couldn't point at the {name}: {res}."
@@ -209,7 +157,7 @@ def get_object_out_of_way(object_name: str, away_from: str) -> str:
             "pose default,default_up,default_high"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You moved the {object_name} away from the {away_from}."
     return f"You couldn't move the {object_name} away from the {away_from}: {res}."
@@ -250,14 +198,14 @@ def look_at(object_name: str) -> str:
             f"inspect {object_name};"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You looked at the {object_name}."
     else:
         SIMULATION.plan_fb_nonblock(
             f"weigh {object_name}; inspect {object_name};"
         )
-        res = _poll_sim()
+        res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You looked at the {object_name}."
     return f"You couldn't look at the {object_name}: {res}."
@@ -271,7 +219,7 @@ def shake_object(object_name: str) -> str:
     :return: Result message.
     """
     SIMULATION.plan_fb_nonblock(f"shake {object_name};")
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You shook the {object_name}."
     return f"You couldn't shake the {object_name}: {res}."
@@ -292,7 +240,7 @@ def grasp_object(object_name: str, slow_speed: str="fast") -> str:
         SIMULATION.setDurationScaling(5.0)
         
     SIMULATION.plan_fb_nonblock(f"get {object_name};")
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
 
     if slow_speed == "slow":
         SIMULATION.setDurationScaling(duration_scaling)
@@ -313,7 +261,7 @@ def drop_object(object_name: str) -> str:
     :return: Result message.
     """
     SIMULATION.plan_fb_nonblock(f"drop {object_name};")
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You dropped the {object_name}."
     return f"You couldn't drop the {object_name}: {res}."
@@ -327,7 +275,7 @@ def weigh_object(object_name: str) -> str:
     :return: Result message.
     """
     SIMULATION.plan_fb_nonblock(f"weigh {object_name};")
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You weighed the {object_name}. It weighs 0.6 kg"
     return f"You couldn't weigh the {object_name}: {res}."
@@ -348,7 +296,7 @@ def put_down_object(object_name: str, put_location: str) -> str:
             "pose default,default_up,default_high"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You put the {object_name} on the the {put_location}."
     return f"You couldn't put the {object_name} on the {put_location}: {res}."
@@ -376,7 +324,7 @@ def pass_object_to_person(object_name: str, person_name: str) -> str:
             "pose default,default_up,default_high"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"Passed {object_name} to {person_name}"
     else:
@@ -389,7 +337,7 @@ def pass_object_to_person(object_name: str, person_name: str) -> str:
                 "pose default,default_up,default_high"
             ),
         )
-        res = _poll_sim()
+        res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You passed the {object_name} to {person_name}."
     return f"You were not able to pass the {object_name} over to {person_name}."
@@ -423,7 +371,7 @@ def watching_you() -> str:
             "pose default,default_up,default_high"
         ),
     )
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return "You successfully did the watchit pose."
     return "You couldn't do the watchit pose."
@@ -439,7 +387,7 @@ def relax() -> str:
     :return: Result message.
     """
     SIMULATION.plan_fb_nonblock("pose default,default_up,default_high")
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
 
     if res.startswith("SUCCESS"):
         return "You successfully relaxed."
@@ -453,7 +401,7 @@ def open_fingers() -> str:
     :return: Result message.
     """
     SIMULATION.plan_fb_nonblock("pose open_fingers")
-    res = _poll_sim()
+    res = poll_simulator(simulator=SIMULATION)
 
     if res.startswith("SUCCESS"):
         return "You successfully opened your fingers."
