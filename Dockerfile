@@ -44,14 +44,15 @@ RUN apt-get update && \
       libqwt-qt5-dev=6.1.4-2 \
       libxml2-dev=2.9.13+dfsg-1ubuntu0.4 \
       libzmq3-dev=4.3.4-2 \
-      openssh-server=1:8.9p1-3ubuntu0.7 \
+      openssh-server=1:8.9p1-3ubuntu0.10 \
       python-is-python3=3.9.2-2 \
-      python3=3.10.6-1~22.04 \
-      python3-dev=3.10.6-1~22.04 \
-      python3-pip=22.0.2+dfsg-1ubuntu0.4 \
+      python3=3.10.6-1~22.04.1 \
+      python3-dev=3.10.6-1~22.04.1 \
+      python3-pip=22.0.2+dfsg-1ubuntu0.5 \
       qt5-qmake=5.15.3+dfsg-2ubuntu0.2 \
       qtbase5-dev=5.15.3+dfsg-2ubuntu0.2 \
       xauth=1:1.1-1build2 && \
+      portaudio19-dev=19.6.0-1.1 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY src /attentive_support/src
