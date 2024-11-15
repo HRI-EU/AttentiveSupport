@@ -42,7 +42,7 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 
 **podman**:
 ```
-docker run \
+podman run \
 -e OPENAI_API_KEY=replace_me \
 -e WAYLAND_DISPLAY \
 --net=host \
