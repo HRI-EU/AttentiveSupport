@@ -51,7 +51,7 @@ RUN apt-get update && \
       python3-pip=22.0.2+dfsg-1ubuntu0.5 \
       qt5-qmake=5.15.3+dfsg-2ubuntu0.2 \
       qtbase5-dev=5.15.3+dfsg-2ubuntu0.2 \
-      xauth=1:1.1-1build2 && \
+      xauth=1:1.1-1build2 \
       portaudio19-dev=19.6.0-1.1 && \
     rm -rf /var/lib/apt/lists/*
 
