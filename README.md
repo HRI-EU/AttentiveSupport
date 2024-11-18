@@ -36,9 +36,8 @@ You can either run the setup script: `bash build.sh` or follow these steps:
 6. Enjoy 🕹️
 
 ### Containerized Runtime
-* Tested with `podman` and rootless `docker`
 * Build the container: `docker build -t localhost/attentive_support .`
-* Run the container with display support and don't forget to set the `OPENAI_API_KEY` as environment variable.
+* Run the container with display support and set the `OPENAI_API_KEY` as environment variable.
 
 **podman**:
 ```
@@ -50,7 +49,7 @@ podman run \
 localhost/attentive_support
 ```
 
-**docker**:
+**docker (rootless)**:
 ```
 docker run \
 -e OPENAI_API_KEY=replace_me \
@@ -59,19 +58,19 @@ docker run \
 localhost/attentive_support
 ```
 
-### Containerized Runtime (remote, rootless with internal ssh server)
-In certain scenarios it might not be possible to display the graphical window.
-For example when running docker rootless on a remote machine with X11.
+**remote, rootless with internal ssh server**:\
+In certain scenarios it might not be possible to display the graphical window, e.g., when running docker rootless on a remote machine with X11.
 For these scenarios, the docker image can be built with the option `docker build --build-arg WITH_SSH_SERVER=true -t localhost/attentive_support .`.
-Then the image can be started with:
+Include proxy settings as necessary.
+Start the image:
 ```
 docker run \
   -it \
   -p 2022:22 \
   localhost/attentive_support
 ```
-This starts an ssh server on port 2022 that can be accessed with username `root` and password `hri`.
-Then the example script can be started with:
+This starts an ssh server on port 2022 that can be accessed with username `root` and password `hri`: `ssh -X root@localhost -p 2022`.
+Run the example script:
 ```
 export RCSVIEWER_SIMPLEGRAPHICS=True
 export OPENAI_API_KEY=replace_me
