@@ -79,6 +79,9 @@ def create_simulator(
     simulator.noLimits = False
     simulator.verbose = False
     simulator.xmlFileName = scene
+    simulator.virtualCameraWidth = 1920
+    simulator.virtualCameraHeight = 1080
+    simulator.virtualCameraEnabled = True
     simulator.init(True)
     simulator.addTTS(tts)
     return simulator
