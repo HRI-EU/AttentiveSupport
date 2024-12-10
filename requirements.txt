@@ -1,8 +1,11 @@
 black==24.3.0
 docstring-parser==0.16
 getch==1.0; sys_platform == 'linux'
+matplotlib==3.7.5
 numpy==1.24.4
 openai==1.14.3
+opencv-python==4.10.0.84
 PyYAML==6.0.1
+requests==2.32.3
 sounddevice==0.4.7
 Wave==0.0.2
