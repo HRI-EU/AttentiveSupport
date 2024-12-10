@@ -84,6 +84,7 @@ def create_simulator(
     simulator.virtualCameraEnabled = True
     simulator.init(True)
     simulator.addTTS(tts)
+    simulator.run()
     return simulator
 
 

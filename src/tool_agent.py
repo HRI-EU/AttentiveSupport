@@ -33,7 +33,6 @@ import argparse
 import importlib
 import inspect
 import json
-import logging
 import os.path
 import platform
 import sys
@@ -49,19 +48,15 @@ else:
     sys.exit(platform.system() + " not supported")
 
 
-from typing import (
-    Literal,
-    Union,
-    Optional,
-)
+from typing import Optional
 
 import numpy as np
-import openai
 import sounddevice as sd
 import wave
 from tempfile import TemporaryDirectory
 
 from function_analyzer import FunctionAnalyzer
+from language_model import LanguageModel
 
 
 class MissingEnvironmentVariable(Exception):
@@ -99,14 +94,6 @@ class ToolAgent:
         global SIM
         SIM = tool_module.SIMULATION
 
-        # LLM settings
-        if not os.path.isfile(os.getenv("OPENAI_API_KEY")):
-            openai.api_key_path = None
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-        self.openai_client = openai.OpenAI()
-        self.model = config.model_name
-        self.temperature = config.temperature
-
         # Character and tools
         self.name = "Johnnie"
         self.character: str = config.system_prompt.format(name=self.name)
@@ -118,41 +105,21 @@ class ToolAgent:
         ]
         self.amnesic: bool = False
 
+        # LLM settings
+        self.llm = LanguageModel(
+            model=config.model_name,
+            temperature=config.temperature,
+            tool_descriptions=self.tool_descriptions,
+        )
         self.messages = [
             {"role": "system", "content": self.character},
         ]
 
         self._user_emojis = "🧑‍🎙️  SPEECH INPUT: "
 
-    def _query_llm(
-        self,
-        messages,
-        tool_choice: Union[Literal["none", "auto"]] = "auto",
-        retries: int = 3,
-    ):
-        response, i = None, 0
-        while True:
-            i += 1
-            try:
-                response = self.openai_client.chat.completions.create(
-                    model=self.model,
-                    temperature=self.temperature,
-                    messages=messages,
-                    tools=self.tool_descriptions,
-                    tool_choice=tool_choice,
-                )
-                logging.info(response)
-            except openai.OpenAIError as e:
-                logging.error(f"❌ OpenAI error, retrying ({e})")
-            if response:
-                break
-            if i >= retries:
-                raise Exception(f"❌ {retries} OpenAI errors, aborting.")
-        return response
-
     def plan_with_functions(self, text_input: str) -> None:
         self.messages.append({"role": "user", "content": text_input})
-        response = self._query_llm(self.messages)
+        response = self.llm.query(self.messages)
         self.messages.append(response.choices[0].message)
 
         # run with function calls as long as necessary
@@ -198,7 +165,7 @@ class ToolAgent:
             if SIM.hasBeenStopped:
                 break
             else:
-                response = self._query_llm(self.messages)
+                response = self.llm.query(self.messages)
                 self.messages.append(response.choices[0].message)
 
         if SIM.hasBeenStopped:
@@ -263,7 +230,7 @@ class ToolAgent:
             audiofile.writeframes(audiodata)
 
         # Transcribe via OpenAI
-        transcription = self.openai_client.audio.transcriptions.create(
+        transcription = self.llm.openai_client.audio.transcriptions.create(
             model="whisper-1",
             file=open(audiofile_name, "rb"),
             language="en",
@@ -375,4 +342,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     agent = ToolAgent(config_module=args.config)
-    SIM.run()

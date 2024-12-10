@@ -29,12 +29,10 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-import base64
 import cv2
 import matplotlib.pyplot as plt
-import os
-import requests
 from simulator import create_simulator, poll_simulator
+from language_model import LanguageModel
 
 
 SIMULATION = create_simulator(scene="g_group_6.xml")
@@ -350,7 +348,7 @@ def point_at_object_or_agent(name: str) -> str:
 
 
 def capture_image(
-    user_question: str = "What is in this image?", camera_name: str = "camera_01"
+    user_question: str = "What is in this image?", camera_name: str = "camera_0"
 ) -> str:
     """
     Capture an image from the scene with the specified camera, encode it as a base64 string,
@@ -360,42 +358,17 @@ def capture_image(
     :param camera_name: The body name of the camera.
     :return: The response from the AI model as a text string.
     """
+    language_model = LanguageModel(model="gpt-4o")
+
     image_array = SIMULATION.captureColorImageFromFrame(camera_name)
-    _, img_encoded = cv2.imencode(".png", image_array)
-    img_bytes = img_encoded.tobytes()
-
-    api_key = os.getenv("OPENAI_API_KEY")
-    base64_image = base64.b64encode(img_bytes).decode("utf-8")
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
-    payload = {
-        "model": "gpt-4o",
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": user_question},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-                    },
-                ],
-            }
-        ],
-        "max_tokens": 750,
-    }
-
-    response = requests.post(
-        "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
-    )
-    json_data = response.json()
-    choices = json_data["choices"]
-    message_content = choices[0]["message"]["content"]
+    response = language_model.query_with_image(image_array=image_array, user_question=user_question)
+    response = response.choices[0].message.content
 
     plt.imshow(image_array)
     plt.axis("off")
     plt.show(block=False)
 
-    return message_content
+    return response
 
 
 def capture_image_from_webcam(
@@ -408,6 +381,8 @@ def capture_image_from_webcam(
     :param user_question: The question to be asked for the image.
     :return: The response from the AI model as a text string.
     """
+    language_model = LanguageModel(model="gpt-4o")
+
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         raise IOError("Cannot open webcam.")
@@ -431,79 +406,26 @@ def capture_image_from_webcam(
             image_array, (new_width, new_height), interpolation=cv2.INTER_AREA
         )
 
-    success, img_encoded = cv2.imencode(".png", image_array)
-    if not success:
-        raise IOError("Failed to encode image to PNG format.")
-
-    img_bytes = img_encoded.tobytes()
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("OpenAI API key not found in environment variables.")
-    base64_image = base64.b64encode(img_bytes).decode("utf-8")
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
-    payload = {
-        "model": "gpt-4o",
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": user_question},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/png;base64,{base64_image}"},
-                    },
-                ],
-            }
-        ],
-        "max_tokens": 750,
-    }
-    response = requests.post(
-        "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
-    )
-    if response.status_code != 200:
-        raise Exception(
-            f"API request failed with status code {response.status_code}: {response.text}"
-        )
-    json_data = response.json()
-
-    if "choices" not in json_data:
-        raise KeyError(f"'choices' not found in API response. Response: {json_data}")
-    choices = json_data["choices"]
-
-    if (
-        not choices
-        or "message" not in choices[0]
-        or "content" not in choices[0]["message"]
-    ):
-        raise KeyError(
-            "Invalid response structure: 'message' or 'content' missing in choices."
-        )
-    message_content = choices[0]["message"]["content"]
+    response = language_model.query_with_image(image_array=image_array, user_question=user_question)
+    response = response.choices[0].message.content
 
     plt.imshow(cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB))
     plt.axis("off")
     plt.show(block=False)
 
-    return message_content
+    return response
 
 
-def rephrase_sentence(sentence: str, model: str = "gpt-4") -> str:
+def rephrase_sentence(sentence: str) -> str:
     """
-    Send a sentence to the OpenAI GPT-4 model to rephrase it.
+    Paraphrase a sentence using a language model.
 
     :param sentence: The sentence to be rephrased.
-    :param model: The OpenAI model to use (default is "gpt-4").
     :return: The rephrased sentence as a string.
     """
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("OpenAI API key not found in environment variables.")
-
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
-
-    payload = {
-        "model": model,
-        "messages": [
+    language_model = LanguageModel(model="gpt-4")
+    response = language_model.query(
+        messages=[
             {
                 "role": "user",
                 "content": (
@@ -512,25 +434,11 @@ def rephrase_sentence(sentence: str, model: str = "gpt-4") -> str:
                     "and phrase it as one short and concise confirmation question."
                 ),
             }
-        ],
-    }
+        ]
+    )
+    return response.choices[0].message.content
 
-    try:
-        response = requests.post(
-            "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
-        )
-        response.raise_for_status()
-        json_data = response.json()
-        if "choices" not in json_data:
-            raise KeyError(
-                f"'choices' not found in API response. Response: {json_data}"
-            )
-        rephrased_sentence = json_data["choices"][0]["message"]["content"]
-        return rephrased_sentence.strip()
 
-    except requests.exceptions.RequestException as e:
-        print("Error with the API request:", e)
-        return "Error: Could not complete the request."
-    except KeyError as e:
-        print("Error parsing the API response:", e)
-        return "Error: Invalid response structure."
+if __name__ == "__main__":
+    SIMULATION.run()
+    print(capture_image("What is in this image?"))
