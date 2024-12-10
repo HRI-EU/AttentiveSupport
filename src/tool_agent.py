@@ -59,7 +59,6 @@ import numpy as np
 import openai
 import sounddevice as sd
 import wave
-import time
 from tempfile import TemporaryDirectory
 
 from function_analyzer import FunctionAnalyzer
