@@ -39,6 +39,8 @@ from typing import (
     Union,
 )
 import openai
+import numpy as np
+
 
 class LanguageModel:
     def __init__(
@@ -93,11 +95,8 @@ class LanguageModel:
         image_array,
         user_question: str,
     ):
-        success, img_encoded = cv2.imencode(".png", image_array)
-        if not success:
-            raise IOError("Failed to encode image to PNG format.")
-        img_bytes = img_encoded.tobytes()
-        base64_image = base64.b64encode(img_bytes).decode("utf-8")
+        bgr_image = image_array[:, :, ::-1] if len(image_array.shape) == 3 else image_array
+        base64_image = base64.b64encode(cv2.imencode(".jpg", bgr_image * 255)[1].tobytes()).decode("utf-8")
 
         return self.query(
             messages=[
