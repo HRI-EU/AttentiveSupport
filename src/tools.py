@@ -29,55 +29,10 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-import platform
-import sys
-import yaml
-
-from pathlib import Path
+from simulator import create_simulator, poll_simulator
 
 
-# System setup
-
-with open(Path(__file__).parent.resolve() / "config.yaml", "r") as config:
-    config_data = yaml.safe_load(config)
-    SMILE_WS_PATH = Path(__file__).parents[1].resolve() / config_data["install"]
-    print(f"{SMILE_WS_PATH=}")
-
-CFG_ROOT_DIR = str(SMILE_WS_PATH / "config")
-CFG_DIR = str(SMILE_WS_PATH / "config/xml/AffAction/xml/examples")
-if platform.system() == "Linux":
-    sys.path.append(str(SMILE_WS_PATH / "lib"))
-elif platform.system() in ("WindowsLocal", "Windows"):
-    sys.path.append(str(SMILE_WS_PATH / "bin"))
-else:
-    sys.exit(platform.system() + " not supported")
-
-
-from pyAffaction import (
-    LlmSim,
-    addResourcePath,
-    setLogLevel,
-)
-
-
-addResourcePath(CFG_ROOT_DIR)
-addResourcePath(CFG_DIR)
-print(f"{CFG_DIR=}")
-setLogLevel(-1)
-
-SIMULATION = LlmSim()
-SIMULATION.noTextGui = True
-SIMULATION.unittest = False
-SIMULATION.speedUp = 3
-SIMULATION.noLimits = False
-SIMULATION.verbose = False
-SIMULATION.xmlFileName = "g_group_6.xml"
-SIMULATION.init(True)
-SIMULATION.addTTS("native")
-
-
-# Tools
-ARG1 = True
+SIMULATION = create_simulator(scene="g_group_6.xml")
 
 
 def get_objects() -> str:
@@ -160,7 +115,7 @@ def check_hindering_reasons(person_name: str, object_name: str) -> str:
 
 def check_reach_object_for_robot(object_name: str) -> str:
     """
-    Check if you (the_robot) can get the object.
+    Check if you (the robot) can get the object.
 
     :param object_name: The name of the object to check. The object must be available in the scene.
     :return: Result message.
@@ -189,7 +144,7 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     if target_container_name not in objects:
         return f"There is no object with the name {target_container_name} in the scene. Did you mean one of these: {objects}?"
 
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {source_container_name} duration 8;"
             f"pour {source_container_name} {target_container_name};"
@@ -197,6 +152,7 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
             "pose default duration 4"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
     return f"You were not able to pour {source_container_name} into {target_container_name}."
@@ -233,17 +189,18 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
     if person_name not in agents:
         return f"There is no agent with the name {person_name} in the scene. Did you mean one of these: {agents}?"
 
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {object_name} duration 8;"
             f"pass {object_name} {person_name};"
             "pose default duration 4"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"Passed {object_name} to {person_name}"
     else:
-        res = SIMULATION.plan_fb(
+        SIMULATION.plan_fb_nonblock(
             (
                 f"get {object_name} duration 8;"
                 f"put {object_name};"
@@ -252,6 +209,7 @@ def hand_object_over_to_person(object_name: str, person_name: str) -> str:
                 "pose default duration 4"
             ),
         )
+        res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     return f"You were not able to hand {object_name} over to {person_name}."
@@ -272,17 +230,18 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
     if person_name not in agents:
         return f"There is no agent with the name {person_name} in the scene. Did you mean one of these: {agents}?"
 
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {object_name};"
             f"put {object_name} near {person_name};"
             "pose default,default_up,default_high"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     else:
-        res = SIMULATION.plan_fb(
+        SIMULATION.plan_fb_nonblock(
             (
                 f"get {object_name};"
                 f"put {object_name};"
@@ -291,6 +250,7 @@ def move_object_to_person(object_name: str, person_name: str) -> str:
                 "pose default,default_up,default_high"
             ),
         )
+        res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You moved {object_name} to {person_name}."
     return f"You were not able to move {object_name} to {person_name}."
@@ -324,13 +284,14 @@ def move_object_away_from_person(object_name: str, away_from: str) -> str:
     if not holdingHand:
         getCommand = f"get {object_name};"
     
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             getCommand +
             f"put {object_name} far {away_from};"
             "pose default,default_up,default_high"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You moved the {object_name} away from the {away_from}."
     return f"You couldn't move the {object_name} away from the {away_from}: {res}."
@@ -351,12 +312,13 @@ def point_at_object_or_agent(name: str) -> str:
             f"Did you mean one of these: {agents} or {objects}?"
         )
 
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"point {name};"
             "pose default,default_up,default_high"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You pointed at the {name}."
     return f"You couldn't point at the {name}: {res}."

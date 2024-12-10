@@ -28,64 +28,11 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-import platform
-import sys
-import yaml
-
-from datetime import datetime
-from pathlib import Path
+#
+from simulator import create_simulator, poll_simulator
 
 
-# System setup
-
-with open(Path(__file__).parent.resolve() / "config.yaml", "r") as config:
-    config_data = yaml.safe_load(config)
-    SMILE_WS_PATH = Path(__file__).parents[1].resolve() / config_data["install"]
-    print(f"{SMILE_WS_PATH=}")
-
-CFG_ROOT_DIR = str(SMILE_WS_PATH / "config")
-CFG_DIR = str(SMILE_WS_PATH / "config/xml/AffAction/xml/examples")
-if platform.system() == "Linux":
-    sys.path.append(str(SMILE_WS_PATH / "lib"))
-elif platform.system() in ("WindowsLocal", "Windows"):
-    sys.path.append(str(SMILE_WS_PATH / "bin"))
-else:
-    sys.exit(platform.system() + " not supported")
-
-
-from pyAffaction import (
-    LlmSim,
-    addResourcePath,
-    setLogLevel,
-)
-
-
-addResourcePath(CFG_ROOT_DIR)
-addResourcePath(CFG_DIR)
-print(f"{CFG_DIR=}")
-setLogLevel(-1)
-
-SIMULATION = LlmSim()
-SIMULATION.noTextGui = True
-SIMULATION.unittest = False
-SIMULATION.speedUp = 3
-SIMULATION.noLimits = False
-SIMULATION.verbose = False
-SIMULATION.xmlFileName = "g_example_curiosity_cocktails.xml"
-SIMULATION.init(True)
-SIMULATION.addTTS("piper")
-
-@staticmethod
-def __del__(self):
-    try:
-        print("STOPPING SIMULATION")
-        SIMULATION.stop()
-    except:
-        pass
-
-# Tools
-ARG1 = True
+SIMULATION = create_simulator(scene="g_example_curiosity_cocktails.xml", tts="piper")
 
 
 def inspect_objects() -> str:
@@ -111,13 +58,14 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     """
     support = SIMULATION.get_parent_entity(source_container_name)
     support_frame = SIMULATION.get_closest_parent_affordance(source_container_name, "Supportable")
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {source_container_name};"
             f"pour {source_container_name} {target_container_name};"
             f"put {source_container_name} {support} frame {support_frame}"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
 
@@ -143,17 +91,18 @@ def pick_and_place(object_name: str, place_name: str) -> str:
     :param place_name: The name of the place to put the object on. 
     :return: Result message.
     """
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"get {object_name};"
             f"put {object_name} {place_name};"
             "pose default,default_up,default_high"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You placed the {object_name} on the {place_name}."
     else:
-        res = SIMULATION.plan_fb(
+        SIMULATION.plan_fb_nonblock(
             (
                 f"get {object_name};"
                 f"put {object_name};"
@@ -162,6 +111,7 @@ def pick_and_place(object_name: str, place_name: str) -> str:
                 "pose default,default_up,default_high"
             ),
         )
+        res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You placed the {object_name} on the {place_name}."
     return f"You couldn't place the {object_name} on the {place_name}: {res}."
@@ -174,12 +124,13 @@ def point_at_object_or_agent(name: str) -> str:
     :param name: The name of the object or person you want to point at.
     :return: Result message.
     """
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"point {name};"
             "pose default,default_up,default_high"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You pointed at the {name}."
     return f"You couldn't point at the {name}: {res}."
@@ -193,23 +144,20 @@ def get_object_out_of_way(object_name: str, away_from: str) -> str:
     :param away_from: The name of the object from which object_name is to be moved away. 
     :return: Result message.
     """
-    holdingHand = SIMULATION.is_held_by(
-        (
-            f"{object_name}"
-        ),
-    )
+    holding_hand = SIMULATION.is_held_by(object_name)
     
-    getCommand = ""
-    if not holdingHand:
-        getCommand = f"get {object_name};"
+    get_command = ""
+    if not holding_hand:
+        get_command = f"get {object_name};"
     
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
-            getCommand +
+            get_command +
             f"put {object_name} far {away_from};"
             "pose default,default_up,default_high"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You moved the {object_name} away from the {away_from}."
     return f"You couldn't move the {object_name} away from the {away_from}: {res}."
@@ -224,12 +172,7 @@ def get_parent_entity(name: str) -> str:
     :param name: The name of the object you want to know the parent from.
     :return: Name of the parent, or empty string if the object has no parent.
     """
-    res = SIMULATION.get_parent_entity(
-        (
-            f"{name}"
-        ),
-    )
-    return res
+    return SIMULATION.get_parent_entity(name)
 
 
 def is_object_held_in_hand(object_name: str) -> str:
@@ -239,15 +182,10 @@ def is_object_held_in_hand(object_name: str) -> str:
     :param object_name: The name of the object you want to know the parent from.
     :return: Name of the holding hand, or empty string if the object has no parent.
     """
-    res = SIMULATION.is_held_by(
-        (
-            f"{object_name}"
-        ),
-    )
-    return res
+    return SIMULATION.is_held_by(object_name)
 
     
-def lookat_object(object_name: str) -> str:
+def look_at(object_name: str) -> str:
     """
     Move the object in front of your camera, and look at it. You must grasp the object before 
     looking at it. After looking at it, the object is still in your hand.
@@ -255,21 +193,21 @@ def lookat_object(object_name: str) -> str:
     :param object_name: The name of the object to look at. 
     :return: Result message.
     """
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"inspect {object_name};"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You looked at the {object_name}."
     else:
-        res = SIMULATION.plan_fb(
-            (
-                f"weigh {object_name}; inspect {object_name};"
-            ),
+        SIMULATION.plan_fb_nonblock(
+            f"weigh {object_name}; inspect {object_name};"
         )
+        res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
-         return f"You looked at the {object_name}."
+        return f"You looked at the {object_name}."
     return f"You couldn't look at the {object_name}: {res}."
 
 
@@ -280,14 +218,10 @@ def shake_object(object_name: str) -> str:
     :param object_name: The name of the object to shake. 
     :return: Result message.
     """
-    support = SIMULATION.get_parent_entity(object_name)
-    res = SIMULATION.plan_fb(
-        (
-            f"shake {object_name};"
-       ),
-    )
+    SIMULATION.plan_fb_nonblock(f"shake {object_name};")
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
-        return f"You shaked the {object_name}."
+        return f"You shook the {object_name}."
     return f"You couldn't shake the {object_name}: {res}."
 
 
@@ -299,26 +233,23 @@ def grasp_object(object_name: str, slow_speed: str="fast") -> str:
     :param slow_speed: Move slow if str is slow, for instance when is it necessary to be careful. 
     :return: Result message.
     """
-    durationScaling = SIMULATION.getDurationScaling()
+    duration_scaling = SIMULATION.getDurationScaling()
     support = SIMULATION.get_parent_entity(object_name)
 
-    if slow_speed=="slow":
+    if slow_speed == "slow":
         SIMULATION.setDurationScaling(5.0)
         
-    res = SIMULATION.plan_fb(
-        (
-            f"get {object_name};"
-        ),
-    )
+    SIMULATION.plan_fb_nonblock(f"get {object_name};")
+    res = poll_simulator(simulator=SIMULATION)
 
-    if slow_speed=="slow":
-        SIMULATION.setDurationScaling(durationScaling)
+    if slow_speed == "slow":
+        SIMULATION.setDurationScaling(duration_scaling)
     
     if res.startswith("SUCCESS"):
-        resStr = f"You grasped the {object_name}"
+        res_message = f"You grasped the {object_name}"
         if support:
-            resStr += f" from the {support}"
-        return resStr + "."
+            res_message += f" from the {support}"
+        return res_message + "."
     return f"You couldn't grasp the {object_name}: {res}."
 
 
@@ -329,11 +260,8 @@ def drop_object(object_name: str) -> str:
     :param object_name: The name of the object to drop. 
     :return: Result message.
     """
-    res = SIMULATION.plan_fb(
-        (
-            f"drop {object_name};"
-        ),
-    )
+    SIMULATION.plan_fb_nonblock(f"drop {object_name};")
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You dropped the {object_name}."
     return f"You couldn't drop the {object_name}: {res}."
@@ -346,11 +274,8 @@ def weigh_object(object_name: str) -> str:
     :param object_name: The name of the object to weigh. 
     :return: Result message.
     """
-    res = SIMULATION.plan_fb(
-        (
-            f"weigh {object_name};"
-        ),
-    )
+    SIMULATION.plan_fb_nonblock(f"weigh {object_name};")
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You weighed the {object_name}. It weighs 0.6 kg"
     return f"You couldn't weigh the {object_name}: {res}."
@@ -365,12 +290,13 @@ def put_down_object(object_name: str, put_location: str) -> str:
     :param put_location: The name of the object or support surface you put the object on. 
     :return: Result message.
     """
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
             f"put {object_name} {put_location};"
             "pose default,default_up,default_high"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You put the {object_name} on the the {put_location}."
     return f"You couldn't put the {object_name} on the {put_location}: {res}."
@@ -385,36 +311,33 @@ def pass_object_to_person(object_name: str, person_name: str) -> str:
     :param person_name: The name of the person to hand over the object to. The person must be available in the scene.
     :return: Result message.
     """
+    holding_hand = SIMULATION.is_held_by(f"{object_name}")
+
+    get_command = ""
+    if not holding_hand:
+        get_command = f"get {object_name};"
     
-    holdingHand = SIMULATION.is_held_by(
+    SIMULATION.plan_fb_nonblock(
         (
-            f"{object_name}"
-        ),
-    )
-    
-    getCommand = ""
-    if not holdingHand:
-        getCommand = f"get {object_name};"
-    
-    res = SIMULATION.plan_fb(
-        (
-            getCommand +
+            get_command +
             f"pass {object_name} {person_name};"
             "pose default,default_up,default_high"
         ),
     )
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"Passed {object_name} to {person_name}"
     else:
-        res = SIMULATION.plan_fb(
+        SIMULATION.plan_fb_nonblock(
             (
-                getCommand +
+                get_command +
                 f"put {object_name};"
                 f"get {object_name};"
                 f"pass {object_name} {person_name};"
                 "pose default,default_up,default_high"
             ),
         )
+        res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return f"You passed the {object_name} to {person_name}."
     return f"You were not able to pass the {object_name} over to {person_name}."
@@ -441,15 +364,17 @@ def watching_you() -> str:
 
     :return: Result message.
     """
-    res = SIMULATION.plan_fb(
+    SIMULATION.plan_fb_nonblock(
         (
-            "pose watchit_eye; pose watchit_point; pose default,default_up,default_high"
+            "pose watchit_eye;"
+            "pose watchit_point;"
+            "pose default,default_up,default_high"
         ),
     )
-
+    res = poll_simulator(simulator=SIMULATION)
     if res.startswith("SUCCESS"):
         return "You successfully did the watchit pose."
-    return "You coudn't do the watchit pose."
+    return "You couldn't do the watchit pose."
 
 
 def relax() -> str:
@@ -461,11 +386,8 @@ def relax() -> str:
 
     :return: Result message.
     """
-    res = SIMULATION.plan_fb(
-        (
-            "pose default,default_up,default_high"
-        ),
-    )
+    SIMULATION.plan_fb_nonblock("pose default,default_up,default_high")
+    res = poll_simulator(simulator=SIMULATION)
 
     if res.startswith("SUCCESS"):
         return "You successfully relaxed."
@@ -478,15 +400,12 @@ def open_fingers() -> str:
 
     :return: Result message.
     """
-    res = SIMULATION.plan_fb(
-        (
-            "pose open_fingers"
-        ),
-    )
+    SIMULATION.plan_fb_nonblock("pose open_fingers")
+    res = poll_simulator(simulator=SIMULATION)
 
     if res.startswith("SUCCESS"):
         return "You successfully opened your fingers."
-    return "You coudn't open your fingers."
+    return "You couldn't open your fingers."
 
 
 def set_slow_speed() -> str:
@@ -495,8 +414,7 @@ def set_slow_speed() -> str:
 
     :return: Result message.
     """
-    res = SIMULATION.setDurationScaling(2.0)
-
+    SIMULATION.setDurationScaling(2.0)
     return "Now the robot moves slow. To make it move fast, call set_fast_speed()."
 
 
@@ -506,6 +424,5 @@ def set_normal_speed() -> str:
 
     :return: Result message.
     """
-    res = SIMULATION.setDefaultDurationScaling()
-
+    SIMULATION.setDefaultDurationScaling()
     return "Now the robot moves with normal speed."

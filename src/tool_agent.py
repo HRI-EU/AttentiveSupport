@@ -37,6 +37,9 @@ import logging
 import os.path
 import platform
 import sys
+import threading
+import time
+import queue
 
 if platform.system() == "Linux":
     from getch import getch
@@ -90,7 +93,9 @@ class ToolAgent:
         config = importlib.import_module(config_module)
         tool_module = importlib.import_module(config.tool_module)
         tools = {
-            n: f for n, f in inspect.getmembers(tool_module) if inspect.isfunction(f)
+            n: f
+            for n, f in inspect.getmembers(tool_module)
+            if inspect.isfunction(f) and f.__module__ == tool_module.__name__
         }
         global SIM
         SIM = tool_module.SIMULATION
@@ -175,7 +180,9 @@ class ToolAgent:
                         + ")"
                     )
                     if SIM.hasBeenStopped:
-                        fn_res = "This task has not been completed due to user interruption."
+                        fn_res = (
+                            "This task has not been completed due to user interruption."
+                        )
                     else:
                         fcn = self.function_resolver[func]
                         fn_res = fcn(**fn_args)
@@ -201,8 +208,11 @@ class ToolAgent:
             self.reset_after_interrupt()
             self.messages.append(
                 {
-                    "role": "system",
-                    "content": f"You were stopped by the user and are now back in your default pose.",
+                    "role": "user",
+                    "content": (
+                        "You have been stopped and safely reset to your default pose. "
+                        "Ignore all interruptions and proceed with your regular operation."
+                    ),
                 },
             )
         else:
@@ -215,7 +225,7 @@ class ToolAgent:
         grasped_objects = SIM.get_objects_held_by(self.name)
         for object_name in grasped_objects["objects"]:
             res = SIM.plan_fb(f"put {object_name}")
-            print(f"⚠️ Putting down {object_name}: {res}")
+            print(f"ℹ️  Putting down {object_name}: {res}")
         SIM.plan_fb("pose default,default_up,default_high")
 
     def execute_voice_command_continuously(
@@ -276,6 +286,76 @@ class ToolAgent:
             {"role": "system", "content": self.character},
         ]
         print(f"📝 Message history reset.")
+
+    def run_threaded(self) -> None:
+        """
+        Uses separate threads for simulator calls and user inputs, which are stored in a queue.
+        Keywords are available for pausing, resuming, and stopping actions.
+        Stopping an action clears the input queue.
+        Providing a new input when the system is stopped assumes that a stop
+        was intended and continues with the new input.
+        """
+        print(
+            "ℹ️  Running in threaded mode, i.e., you can provide new inputs at any time. "
+            "You can use the following keywords: 'exit', 'pause', 'resume', and 'stop'."
+        )
+        task_queue = queue.Queue()
+        pause_event = threading.Event()
+        exit_event = threading.Event()
+
+        def _process_input():
+            while not exit_event.is_set():
+                try:
+                    next_task = task_queue.get(timeout=1)
+                    if next_task is not None:
+                        print(f"📋 Processing next input from queue: {next_task}")
+                        self.plan_with_functions(next_task)
+                        task_queue.task_done()
+                except queue.Empty:
+                    continue
+
+        def _take_input():
+            while not exit_event.is_set():
+                task = input()
+                print(f"🧑‍ Registered new input: {task}")
+                if task == "exit":
+                    print("ℹ️  Exiting threaded mode.")
+                    exit_event.set()
+                    break
+                if task == "stop":
+                    print("⏹️ Stopping and clearing input queue.")
+                    if pause_event.is_set():
+                        SIM.resumeTrajectory()
+                    SIM.clearTrajectory()
+                    task_queue.queue.clear()
+                    pause_event.clear()
+                    continue
+                if task == "pause":
+                    print("⏸️ Pausing. Continue with 'resume' or 'stop'.")
+                    SIM.pauseTrajectory()
+                    pause_event.set()
+                    continue
+                if task == "resume":
+                    print("▶️ Resuming.")
+                    SIM.resumeTrajectory()
+                    pause_event.clear()
+                    continue
+                if pause_event.is_set():
+                    SIM.resumeTrajectory()
+                    SIM.clearTrajectory()
+                    task_queue.queue.clear()
+                    pause_event.clear()
+                task_queue.put(task)
+
+        processing_thread = threading.Thread(target=_process_input, daemon=True)
+        processing_thread.start()
+        input_thread = threading.Thread(target=_take_input, daemon=True)
+        input_thread.start()
+        while task_queue.empty() and not exit_event.is_set():
+            time.sleep(1)
+        input_thread.join()
+        task_queue.join()
+        processing_thread.join()
 
 
 def set_busy(agent: str, thing: str):
