@@ -31,6 +31,9 @@
 #
 # A set of tools with varying degrees of granularity, i.e., atomic and aggregated ones.
 #
+import math
+import matplotlib.pyplot as plt
+from language_model import LanguageModel
 from simulator import create_simulator, poll_simulator
 
 
@@ -176,6 +179,34 @@ def check_objects_in_hands(agent_name: str) -> str:
         + ", ".join(result["objects"])
         + "."
     )
+
+
+def answer_using_capture(
+    user_question: str = "What is in the environment?"
+) -> str:
+    """
+    Get an answer about the environment by capturing an image from the scene and letting
+        a Vision Language Model answer the question.
+
+    :param user_question: The question to be asked for the image.
+    :return: The response from the AI model as a text string.
+    """
+    language_model = LanguageModel(model="gpt-4o")
+
+    images = [
+        SIMULATION.captureImage(1, -1, 1.5, -math.pi / 12, -math.pi / 12, math.pi * 3 / 4)[0],
+        SIMULATION.captureImage(1, 1, 1.5, math.pi / 12, -math.pi / 12, -math.pi * 3 / 4)[0],
+        SIMULATION.captureImage(-0.2, 0, 2, 0, math.pi / 2, 0)[0],
+    ]
+    response = language_model.query_with_image(images=images, user_question=user_question)
+    response = response.choices[0].message.content
+
+    for image in images:
+        plt.imshow(image)
+        plt.axis("off")
+        plt.show(block=False)
+
+    return response
 
 
 # tools for social interaction
@@ -612,3 +643,8 @@ def pour_into(source_container_name: str, target_container_name: str) -> str:
     if res.startswith("SUCCESS"):
         return f"You poured {source_container_name} into {target_container_name}."
     return f"You were not able to pour {source_container_name} into {target_container_name}."
+
+
+if __name__ == "__main__":
+    SIMULATION.run()
+    print(answer_using_capture("What is in the environment?"))

@@ -361,7 +361,7 @@ def capture_image(
     language_model = LanguageModel(model="gpt-4o")
 
     image_array = SIMULATION.captureColorImageFromFrame(camera_name)
-    response = language_model.query_with_image(image_array=image_array, user_question=user_question)
+    response = language_model.query_with_image(images=[image_array], user_question=user_question)
     response = response.choices[0].message.content
 
     plt.imshow(image_array)
@@ -406,7 +406,7 @@ def capture_image_from_webcam(
             image_array, (new_width, new_height), interpolation=cv2.INTER_AREA
         )
 
-    response = language_model.query_with_image(image_array=image_array, user_question=user_question)
+    response = language_model.query_with_image(images=[image_array], user_question=user_question)
     response = response.choices[0].message.content
 
     plt.imshow(cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB))

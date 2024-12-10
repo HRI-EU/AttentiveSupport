@@ -92,11 +92,25 @@ class LanguageModel:
 
     def query_with_image(
         self,
-        image_array,
+        images: list,
         user_question: str,
     ):
-        bgr_image = image_array[:, :, ::-1] if len(image_array.shape) == 3 else image_array
-        base64_image = base64.b64encode(cv2.imencode(".jpg", bgr_image * 255)[1].tobytes()).decode("utf-8")
+        bgr_images = [
+            image[:, :, ::-1] if len(image.shape) == 3 else image for image in images
+        ]
+        base64_images = [
+            base64.b64encode(cv2.imencode(".jpg", bgr_image * 255)[1].tobytes()).decode(
+                "utf-8"
+            )
+            for bgr_image in bgr_images
+        ]
+        image_contents = [
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
+            }
+            for base64_image in base64_images
+        ]
 
         return self.query(
             messages=[
@@ -104,10 +118,7 @@ class LanguageModel:
                     "role": "user",
                     "content": [
                         {"type": "text", "text": user_question},
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-                        },
+                        *image_contents,
                     ],
                 }
             ]
