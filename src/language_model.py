@@ -46,13 +46,15 @@ class LanguageModel:
     def __init__(
         self,
         model: str,
+        llm_base_url: str = "https://api.openai.com/v1/",
         temperature: float = 1e-9,
         tool_descriptions: Optional[list] = None,
     ) -> None:
         if not os.path.isfile(os.getenv("OPENAI_API_KEY")):
             openai.api_key_path = None
         openai.api_key = os.getenv("OPENAI_API_KEY")
-        self.openai_client = openai.OpenAI()
+        logging.info(f"model name: {model}, base_url: {llm_base_url}")
+        self.openai_client = openai.OpenAI(base_url=llm_base_url)
         self.model = model
         self.temperature = temperature
         self.tool_descriptions = tool_descriptions

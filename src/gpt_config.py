@@ -30,7 +30,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Model settings
-model_name = "gpt-4-0125-preview"
+#model_name = "gpt-4-0125-preview"
+model_name = "gpt-4o"
 temperature = 0.00000001
 
 # Agent character

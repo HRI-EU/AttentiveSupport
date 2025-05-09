@@ -46,7 +46,7 @@ with open(Path(__file__).parent.resolve() / "config.yaml", "r") as config:
     print(f"{SMILE_WS_PATH=}")
 
 CFG_ROOT_DIR = str(SMILE_WS_PATH / "config")
-CFG_DIR = str(SMILE_WS_PATH / "config/xml/AffAction/xml/examples")
+CFG_DIR = str(SMILE_WS_PATH / "config/xml/examples")
 if platform.system() == "Linux":
     sys.path.append(str(SMILE_WS_PATH / "lib"))
 elif platform.system() in ("WindowsLocal", "Windows"):
@@ -69,7 +69,7 @@ setLogLevel(-1)
 
 
 def create_simulator(
-    scene: str = "g_group_6.xml",
+    scene: str = "g_attentive_support.xml",
     tts: str = "native",
 ) -> LlmSim:
     simulator = LlmSim()

@@ -32,7 +32,7 @@
 from simulator import create_simulator, poll_simulator
 
 
-SIMULATION = create_simulator(scene="g_group_6.xml")
+SIMULATION = create_simulator(scene="g_attentive_support.xml")
 
 
 def get_objects() -> str:
