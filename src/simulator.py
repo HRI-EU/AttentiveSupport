@@ -39,7 +39,6 @@ from pathlib import Path
 
 
 # System setup
-
 with open(Path(__file__).parent.resolve() / "config.yaml", "r") as config:
     config_data = yaml.safe_load(config)
     SMILE_WS_PATH = Path(__file__).parents[1].resolve() / config_data["install"]
@@ -51,6 +50,7 @@ if platform.system() == "Linux":
     sys.path.append(str(SMILE_WS_PATH / "lib"))
 elif platform.system() in ("WindowsLocal", "Windows"):
     sys.path.append(str(SMILE_WS_PATH / "bin"))
+    sys.path.append(str(SMILE_WS_PATH / "bin" / "Release"))
 else:
     sys.exit(platform.system() + " not supported")
 
@@ -71,6 +71,7 @@ setLogLevel(-1)
 def create_simulator(
     scene: str = "g_attentive_support.xml",
     tts: str = "native",
+    with_ptu: bool = False,
 ) -> LlmSim:
     simulator = LlmSim()
     simulator.noTextGui = True
@@ -82,8 +83,12 @@ def create_simulator(
     simulator.virtualCameraWidth = 1920
     simulator.virtualCameraHeight = 1080
     simulator.virtualCameraEnabled = True
+    simulator.addComponentArgument("-tts")
+    if with_ptu:
+        simulator.addComponentArgument("-pw70_zmq")
+        simulator.enableRealGraphVisualization = True
+        simulator.speedUp = 1
     simulator.init(True)
-    simulator.addTTS(tts)
     simulator.run()
     return simulator
 
